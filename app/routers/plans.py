@@ -52,11 +52,17 @@ def create_plan(
     *,
     db: Session = Depends(get_db),
     plan_in: PlanCreate,
-    current_user: User = Depends(check_coach_permission),
+    current_user: User = Depends(get_current_active_user),
 ) -> Any:
     """
     Create new plan.
     """
+    if current_user.role != UserRole.COACH:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only coaches can create plans"
+        )
+
     plan = Plan(
         name=plan_in.name,
         description=plan_in.description,
@@ -387,3 +393,24 @@ def delete_plan_assignment(
     db.delete(assignment)
     db.commit()
     return assignment
+
+
+@router.get("/assignments", response_model=List[PlanAssignmentSchema])
+def read_plan_assignments(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+    skip: int = 0,
+    limit: int = 100,
+) -> Any:
+    """
+    Retrieve plan assignments.
+    """
+    if current_user.role == UserRole.ADMIN:
+        assignments = db.query(PlanAssignment).offset(skip).limit(limit).all()
+    elif current_user.role == UserRole.COACH:
+        assignments = db.query(PlanAssignment).filter(
+            PlanAssignment.assigned_by_coach_id == current_user.id).offset(skip).limit(limit).all()
+    else:  # ATHLETE
+        assignments = db.query(PlanAssignment).filter(
+            PlanAssignment.athlete_id == current_user.id).offset(skip).limit(limit).all()
+    return assignments

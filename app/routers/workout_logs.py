@@ -32,8 +32,10 @@ def read_workout_logs(
     if current_user.role == UserRole.ADMIN:
         pass  # Admin can see all logs
     elif current_user.role == UserRole.COACH:
-        # Coach can only see logs of their athletes
-        athlete_ids = [athlete.id for athlete in current_user.athletes]
+        # Coach can only see logs of their athletes (using direct query)
+        managed_athletes = db.query(User).filter(
+            User.coach_id == current_user.id).all()
+        athlete_ids = [athlete.id for athlete in managed_athletes]
         query = query.filter(WorkoutLog.athlete_id.in_(athlete_ids))
     else:  # ATHLETE
         # Athletes can only see their own logs
