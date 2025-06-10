@@ -26,7 +26,7 @@ cd appdelpalestrato
 
 2. Create a `.env` file in the root directory with the following variables:
 ```env
-DATABASE_URL=postgresql://postgres:postgres@db:5432/appdelpalestrato
+DATABASE_URL=postgresql://postgres:postgres@postgres-db:5432/appdelpalestrato
 SECRET_KEY=your-secret-key-here
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
