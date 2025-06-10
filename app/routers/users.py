@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Any
 
 from app.core.database import get_db
-from app.core.security import oauth2_scheme, verify_token
+from app.core.security import oauth2_scheme, verify_token, get_password_hash
 from app.models.user import User, UserRole
 from app.schemas.user import User as UserSchema, UserCreate, UserUpdate
 

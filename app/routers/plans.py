@@ -315,7 +315,7 @@ def update_plan_assignment(
     db: Session = Depends(get_db),
     assignment_id: int,
     assignment_in: PlanAssignmentUpdate,
-    current_user: User = Depends(check_coach_permission),
+    current_user: User = Depends(get_current_active_user),
 ) -> Any:
     """
     Update a plan assignment.
@@ -328,15 +328,30 @@ def update_plan_assignment(
             detail="Assignment not found"
         )
 
-    # Verify the coach has permission to update this assignment
-    if current_user.role != UserRole.ADMIN and assignment.assigned_by_coach_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions to update this assignment"
-        )
-
-    for field, value in assignment_in.dict(exclude_unset=True).items():
-        setattr(assignment, field, value)
+    # Athlete: can only update their own assignment, and only the status field
+    if current_user.role == UserRole.ATHLETE:
+        if assignment.athlete_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not enough permissions"
+            )
+        update_data = assignment_in.dict(exclude_unset=True)
+        # Only allow updating 'status' and only if it's the only field
+        if not update_data or set(update_data.keys()) != {"status"}:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Athletes can only update the status field"
+            )
+        assignment.status = update_data["status"]
+    else:
+        # Coach or admin: existing logic
+        if current_user.role != UserRole.ADMIN and assignment.assigned_by_coach_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not enough permissions to update this assignment"
+            )
+        for field, value in assignment_in.dict(exclude_unset=True).items():
+            setattr(assignment, field, value)
 
     db.add(assignment)
     db.commit()

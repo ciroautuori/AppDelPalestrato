@@ -3,6 +3,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import timedelta
 from typing import Any
+from pydantic import BaseModel
 
 from app.core.database import get_db
 from app.core.security import (
@@ -103,15 +104,19 @@ def login(
     }
 
 
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
+
+
 @router.post("/refresh", response_model=Token)
 def refresh_token(
-    refresh_token: str,
+    request: RefreshTokenRequest,
     db: Session = Depends(get_db)
 ) -> Any:
     """
     Refresh access token.
     """
-    payload = verify_token(refresh_token)
+    payload = verify_token(request.refresh_token)
     if not payload:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
