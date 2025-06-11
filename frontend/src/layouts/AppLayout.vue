@@ -1,8 +1,11 @@
 <template>
-  <div class="flex h-screen bg-brand-dark text-brand-light">
-    <Sidebar />
-    <div class="flex-1 flex flex-col overflow-hidden">
-      <main class="flex-1 overflow-x-hidden overflow-y-auto bg-base-200 p-4 sm:p-6 lg:p-8">
+  <div class="min-h-screen bg-gray-900">
+    <!-- Navigation Component (handles both sidebar and dock) -->
+    <Navigation />
+
+    <!-- Main Content -->
+    <div class="md:pl-64"> <!-- Add padding for sidebar on desktop -->
+      <main class="min-h-screen pb-16 md:pb-0"> <!-- Add padding for dock on mobile -->
         <slot />
       </main>
     </div>
@@ -10,5 +13,5 @@
 </template>
 
 <script setup>
-import Sidebar from '@/components/layouts/Sidebar.vue';
+import Navigation from '@/components/layouts/Navigation.vue';
 </script> 
