@@ -24,5 +24,16 @@ export const userService = {
   async deleteUser(userId) {
     const response = await api.delete(`/users/${userId}/`);
     return response.data;
-  }
+  },
+
+  async getCoachAthletes(coachId, params) {
+    const response = await api.get('/api/v1/users', {
+      params: {
+        coach_id: coachId,
+        role: 'athlete',
+        ...params,
+      },
+    });
+    return response.data;
+  },
 }; 

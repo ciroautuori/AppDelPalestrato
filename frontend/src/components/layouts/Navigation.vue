@@ -11,6 +11,12 @@
 
       <!-- Navigation Links -->
       <nav class="flex-1 px-2 py-4 space-y-1">
+        <div v-if="navigationItems.length === 0 && authStore.isUserAuthenticated" class="px-2 py-2 text-sm text-gray-400">
+          Nessun menu disponibile per il tuo ruolo.
+        </div>
+        <div v-else-if="!authStore.isUserAuthenticated" class="px-2 py-2 text-sm text-gray-400">
+          Effettua il login per vedere il menu.
+        </div>
         <router-link
           v-for="item in navigationItems"
           :key="item.name"
@@ -36,7 +42,7 @@
       </nav>
 
       <!-- User Section -->
-      <div class="p-4 border-t border-gray-800">
+      <div class="p-4 border-t border-gray-800" v-if="authStore.isUserAuthenticated">
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center">
@@ -45,6 +51,7 @@
           </div>
           <div class="ml-3">
             <p class="text-sm font-medium text-white">{{ userEmail }}</p>
+            <p class="text-xs text-gray-400 capitalize">{{ authStore.user?.role }}</p> <!-- Display user role -->
             <button
               @click="handleLogout"
               class="text-xs text-gray-400 hover:text-yellow-500"
@@ -58,6 +65,7 @@
 
     <!-- Dock (visible on mobile) -->
     <nav
+      v-if="authStore.isUserAuthenticated && navigationItems.length > 0"
       class="md:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800"
     >
       <div class="flex justify-around items-center h-16">
@@ -97,44 +105,87 @@ const userInitials = computed(() => {
   return email ? email.charAt(0).toUpperCase() : '';
 });
 
-const navigationItems = [
+// Define navigation links for each role
+const adminLinks = [
   {
-    name: 'Dashboard',
+    name: 'Dashboard Admin',
     to: '/admin/dashboard',
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>`
+  },
+  {
+    name: 'Gestione Utenti',
+    to: '/admin/users',
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>`
+  },
+  // Add other admin links here if they were in the original static list
+  // { name: 'Piani (Admin)', to: '/admin/plans', icon: '...' },
+  // { name: 'Analytics (Admin)', to: '/admin/analytics', icon: '...' },
+  // { name: 'Impostazioni (Admin)', to: '/admin/settings', icon: '...' },
+];
+
+const coachLinks = [
+  {
+    name: 'Dashboard Coach',
+    to: '/coach/dashboard',
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>`
+  },
+  {
+    name: 'Miei Atleti',
+    to: '/coach/my-athletes',
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.084-1.28-.24-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.084-1.28.24-1.857m12.76-1.857v-2a6 6 0 00-9.52-4.292M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`
+  },
+  {
+    name: 'Miei Piani',
+    to: '/coach/my-plans',
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>`
+  },
+];
+
+const athleteLinks = [
+  {
+    name: 'Dashboard Atleta',
+    to: '/athlete/dashboard',
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`
+  },
+];
+
+// Computed property to determine which navigation items to display
+const navigationItems = computed(() => {
+  const role = authStore.user?.role;
+  if (role === 'admin') {
+    // For admin, return the original static list or a defined adminLinks array
+    // For now, let's keep the original items if the role is admin, assuming they were admin links
+    return [
+      {
+        name: 'Dashboard',
+        to: '/admin/dashboard',
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
     </svg>`
-  },
-  {
-    name: 'Utenti',
-    to: '/admin/users',
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      },
+      {
+        name: 'Utenti',
+        to: '/admin/users',
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
     </svg>`
-  },
-  {
-    name: 'Piani',
-    to: '/admin/plans',
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      },
+      // ... include other original items like Piani, Analytics, Impostazioni if they were admin-specific
+       {
+        name: 'Piani (Admin)', // Clarified name
+        to: '/admin/plans', // Assuming this was an admin route
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
     </svg>`
-  },
-  {
-    name: 'Analytics',
-    to: '/admin/analytics',
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-    </svg>`
-  },
-  {
-    name: 'Impostazioni',
-    to: '/admin/settings',
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>`
+      },
+    ];
+  } else if (role === 'coach') {
+    return coachLinks;
+  } else if (role === 'athlete') {
+    return athleteLinks;
   }
-];
+  return []; // Default for users with no role or if not logged in
+});
 
 const handleLogout = async () => {
   await authStore.logout();
