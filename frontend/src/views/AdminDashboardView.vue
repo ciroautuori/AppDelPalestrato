@@ -2,18 +2,33 @@
 import { useAuthStore } from '@/store/auth';
 import { onMounted, ref, computed } from 'vue';
 import { useUserManagementStore } from '@/store/userManagement';
+import { useToastStore } from '@/store/toast';
+import Toast from '@/components/Toast.vue';
 
 const authStore = useAuthStore();
 const userManagementStore = useUserManagementStore();
+const toastStore = useToastStore();
 const showCreateModal = ref(false);
 const currentPage = ref(1);
 const itemsPerPage = 10;
+
+const createModal = ref(null);
+const editModal = ref(null);
 
 const newUser = ref({
   name: '',
   email: '',
   password: '',
-  role: 'athlete'
+  role: 'athlete',
+  coach_id: null
+});
+
+const editingUser = ref({
+  id: null,
+  email: '',
+  role: '',
+  coach_id: null,
+  is_active: true
 });
 
 const users = computed(() => userManagementStore.users);
@@ -29,25 +44,65 @@ onMounted(() => {
 });
 
 const openCreateUserModal = () => {
-  document.getElementById('createUserModal').showModal();
+  createModal.value.showModal();
 };
 
 const closeCreateUserModal = () => {
-  document.getElementById('createUserModal').close();
+  createModal.value.close();
+  newUser.value = {
+    name: '',
+    email: '',
+    password: '',
+    role: 'athlete',
+    coach_id: null
+  };
+};
+
+const openEditModal = (user) => {
+  editingUser.value = { ...user };
+  editModal.value.showModal();
+};
+
+const closeEditModal = () => {
+  editModal.value.close();
+  editingUser.value = {
+    id: null,
+    email: '',
+    role: '',
+    coach_id: null,
+    is_active: true
+  };
 };
 
 const handleCreateUser = async () => {
   try {
-    await userManagementStore.addUser(newUser.value);
-    showCreateModal.value = false;
-    newUser.value = {
-      name: '',
-      email: '',
-      password: '',
-      role: 'athlete'
-    };
+    await userManagementStore.createUser(newUser.value);
+    toastStore.showToast('Utente creato con successo', 'success');
+    closeCreateUserModal();
   } catch (error) {
-    console.error('Error creating user:', error);
+    toastStore.showToast(error.message || 'Errore nella creazione dell\'utente', 'error');
+  }
+};
+
+const handleUpdateUser = async () => {
+  try {
+    await userManagementStore.updateUser(editingUser.value.id, editingUser.value);
+    toastStore.showToast('Utente aggiornato con successo', 'success');
+    closeEditModal();
+  } catch (error) {
+    toastStore.showToast(error.message || 'Errore nell\'aggiornamento dell\'utente', 'error');
+  }
+};
+
+const toggleUserStatus = async (user) => {
+  try {
+    await userManagementStore.updateUser(user.id, { is_active: !user.is_active });
+    toastStore.showToast(
+      `Utente ${user.is_active ? 'disattivato' : 'attivato'} con successo`,
+      'success'
+    );
+  } catch (error) {
+    toastStore.showToast(error.message || 'Errore nella modifica dello stato dell\'utente', 'error');
   }
 };
 
@@ -74,13 +129,21 @@ const getStatusBadgeClass = (isActive) => {
 </script>
 
 <template>
-  <div class="p-6">
-    <div class="mb-8">
+  <div class="p-4">
+    <Toast />
+    
+    <!-- Header con titolo e pulsante nuovo utente -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
       <h1 class="text-2xl font-bold text-white">Dashboard</h1>
-      <p class="text-gray-400">Benvenuto nella tua dashboard</p>
+      <button @click="openCreateUserModal" class="btn btn-warning w-full sm:w-auto" :disabled="userManagementStore.loading">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+        Nuovo Utente
+      </button>
     </div>
 
-    <!-- Feature Cards -->
+    <!-- Statistiche -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
         <div class="flex items-center justify-between mb-4">
@@ -91,7 +154,7 @@ const getStatusBadgeClass = (isActive) => {
             </svg>
           </div>
         </div>
-        <p class="text-3xl font-bold text-white">{{ users.length }}</p>
+        <p class="text-3xl font-bold text-white">{{ userManagementStore.getUsers.length }}</p>
         <p class="text-sm text-gray-400 mt-2">Utenti registrati</p>
       </div>
 
@@ -104,7 +167,7 @@ const getStatusBadgeClass = (isActive) => {
             </svg>
           </div>
         </div>
-        <p class="text-3xl font-bold text-white">{{ users.filter(u => u.role === 'coach').length }}</p>
+        <p class="text-3xl font-bold text-white">{{ userManagementStore.getUsers.filter(u => u.role === 'coach').length }}</p>
         <p class="text-sm text-gray-400 mt-2">Allenatori attivi</p>
       </div>
 
@@ -117,229 +180,214 @@ const getStatusBadgeClass = (isActive) => {
             </svg>
           </div>
         </div>
-        <p class="text-3xl font-bold text-white">{{ users.filter(u => u.role === 'athlete').length }}</p>
+        <p class="text-3xl font-bold text-white">{{ userManagementStore.getUsers.filter(u => u.role === 'athlete').length }}</p>
         <p class="text-sm text-gray-400 mt-2">Atleti registrati</p>
       </div>
 
       <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold text-white">Attività Recenti</h3>
+          <h3 class="text-lg font-semibold text-white">Utenti Attivi</h3>
           <div class="p-2 bg-yellow-500/10 rounded-lg">
             <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
         </div>
-        <p class="text-3xl font-bold text-white">12</p>
-        <p class="text-sm text-gray-400 mt-2">Nuove attività oggi</p>
+        <p class="text-3xl font-bold text-white">{{ userManagementStore.getUsers.filter(u => u.is_active).length }}</p>
+        <p class="text-sm text-gray-400 mt-2">Utenti attivi</p>
       </div>
     </div>
 
-    <!-- User Management Section -->
-    <div class="bg-gray-800 rounded-lg border border-gray-700">
-      <div class="p-6 border-b border-gray-700">
-        <div class="flex justify-between items-center">
-          <h2 class="text-xl font-semibold text-white">Gestione Utenti</h2>
-          <button
-            @click="showCreateModal = true"
-            class="px-4 py-2 bg-yellow-500 text-black rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-gray-800"
-          >
-            Nuovo Utente
-          </button>
-        </div>
-      </div>
+    <!-- Loading Spinner -->
+    <div v-if="userManagementStore.loading" class="flex justify-center items-center py-8">
+      <div class="loading loading-spinner loading-lg text-warning"></div>
+    </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead>
-            <tr class="bg-gray-700/50">
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Nome</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Email</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Ruolo</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Stato</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">Azioni</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-700">
-            <tr v-for="user in paginatedUsers" :key="user.id" class="hover:bg-gray-700/30">
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center">
-                  <div class="flex-shrink-0 h-10 w-10">
-                    <div class="h-10 w-10 rounded-full bg-gray-600 flex items-center justify-center">
-                      <span class="text-lg font-medium text-white">{{ user.name.charAt(0) }}</span>
-                    </div>
-                  </div>
-                  <div class="ml-4">
-                    <div class="text-sm font-medium text-white">{{ user.name }}</div>
-                  </div>
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-300">{{ user.email }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                  :class="{
-                    'bg-yellow-500/10 text-yellow-500': user.role === 'admin',
-                    'bg-blue-500/10 text-blue-500': user.role === 'coach',
-                    'bg-green-500/10 text-green-500': user.role === 'athlete'
-                  }"
-                >
-                  {{ user.role }}
-                </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span :class="getStatusBadgeClass(user.isActive)">{{ user.isActive ? 'Attivo' : 'Non Attivo' }}</span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button class="text-yellow-500 hover:text-yellow-600 mr-3">Modifica</button>
-                <button class="text-red-500 hover:text-red-600">Elimina</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+    <!-- Error Message -->
+    <div v-if="userManagementStore.errorMessage" class="alert alert-error mb-4">
+      <span>{{ userManagementStore.errorMessage }}</span>
+    </div>
 
-      <!-- Pagination -->
-      <div class="px-6 py-4 border-t border-gray-700">
-        <div class="flex items-center justify-between">
-          <div class="flex-1 flex justify-between sm:hidden">
-            <button
-              @click="currentPage > 1 && (currentPage--)"
-              :disabled="currentPage === 1"
-              class="relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700"
-            >
-              Precedente
-            </button>
-            <button
-              @click="currentPage < totalPages && (currentPage++)"
-              :disabled="currentPage === totalPages"
-              class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700"
-            >
-              Successivo
-            </button>
-          </div>
-          <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p class="text-sm text-gray-400">
-                Mostrando
-                <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span>
-                a
-                <span class="font-medium">{{ Math.min(currentPage * itemsPerPage, users.length) }}</span>
-                di
-                <span class="font-medium">{{ users.length }}</span>
-                risultati
-              </p>
-            </div>
-            <div>
-              <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                <button
-                  @click="currentPage > 1 && (currentPage--)"
-                  :disabled="currentPage === 1"
-                  class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-700 bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700"
-                >
-                  <span class="sr-only">Precedente</span>
-                  <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                  </svg>
+    <!-- Tabella Utenti -->
+    <div v-if="!userManagementStore.loading" class="overflow-x-auto bg-gray-800 rounded-lg shadow">
+      <table class="table w-full">
+        <thead>
+          <tr class="text-gray-400">
+            <th class="hidden sm:table-cell">ID</th>
+            <th>Email</th>
+            <th>Ruolo</th>
+            <th class="hidden md:table-cell">Coach Assegnato</th>
+            <th>Stato</th>
+            <th class="text-right">Azioni</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="user in userManagementStore.getUsers" :key="user.id" class="hover:bg-gray-700">
+            <td class="hidden sm:table-cell">{{ user.id }}</td>
+            <td>{{ user.email }}</td>
+            <td>
+              <span :class="[
+                'badge',
+                user.role === 'admin' ? 'badge-primary' :
+                user.role === 'coach' ? 'badge-secondary' :
+                'badge-accent'
+              ]">
+                {{ user.role }}
+              </span>
+            </td>
+            <td class="hidden md:table-cell">{{ user.coach_id || '-' }}</td>
+            <td>
+              <span :class="[
+                'badge',
+                user.is_active ? 'badge-success' : 'badge-error'
+              ]">
+                {{ user.is_active ? 'Attivo' : 'Disattivo' }}
+              </span>
+            </td>
+            <td class="text-right">
+              <div class="flex flex-col sm:flex-row gap-2 justify-end">
+                <button @click="openEditModal(user)" class="btn btn-xs btn-warning w-full sm:w-auto" :disabled="userManagementStore.loading">
+                  Modifica
                 </button>
-                <button
-                  v-for="page in totalPages"
-                  :key="page"
-                  @click="currentPage = page"
+                <button 
+                  v-if="user.email !== 'admin@example.com'"
+                  @click="toggleUserStatus(user)"
                   :class="[
-                    currentPage === page
-                      ? 'z-10 bg-yellow-500 border-yellow-500 text-black'
-                      : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700',
-                    'relative inline-flex items-center px-4 py-2 border text-sm font-medium'
+                    'btn btn-xs w-full sm:w-auto',
+                    user.is_active ? 'btn-error' : 'btn-success'
                   ]"
+                  :disabled="userManagementStore.loading"
                 >
-                  {{ page }}
+                  {{ user.is_active ? 'Disattiva' : 'Attiva' }}
                 </button>
-                <button
-                  @click="currentPage < totalPages && (currentPage++)"
-                  :disabled="currentPage === totalPages"
-                  class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-700 bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700"
-                >
-                  <span class="sr-only">Successivo</span>
-                  <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                  </svg>
-                </button>
-              </nav>
-            </div>
-          </div>
-        </div>
-      </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
-    <!-- Create User Modal -->
-    <div v-if="showCreateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
-        <h3 class="text-lg font-medium text-white mb-4">Crea Nuovo Utente</h3>
+    <!-- Modale Creazione Utente -->
+    <dialog ref="createModal" class="modal">
+      <div class="modal-box bg-gray-800 w-11/12 max-w-md">
+        <h3 class="font-bold text-lg mb-4">Nuovo Utente</h3>
         <form @submit.prevent="handleCreateUser">
-          <div class="space-y-4">
-            <div>
-              <label for="name" class="block text-sm font-medium text-gray-300">Nome</label>
-              <input
-                type="text"
-                id="name"
-                v-model="newUser.name"
-                class="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
-                required
-              />
-            </div>
-            <div>
-              <label for="email" class="block text-sm font-medium text-gray-300">Email</label>
-              <input
-                type="email"
-                id="email"
-                v-model="newUser.email"
-                class="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
-                required
-              />
-            </div>
-            <div>
-              <label for="password" class="block text-sm font-medium text-gray-300">Password</label>
-              <input
-                type="password"
-                id="password"
-                v-model="newUser.password"
-                class="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
-                required
-              />
-            </div>
-            <div>
-              <label for="role" class="block text-sm font-medium text-gray-300">Ruolo</label>
-              <select
-                id="role"
-                v-model="newUser.role"
-                class="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-white shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
-                required
-              >
-                <option value="admin">Admin</option>
-                <option value="coach">Coach</option>
-                <option value="athlete">Atleta</option>
-              </select>
-            </div>
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Email</span>
+            </label>
+            <input 
+              v-model="newUser.email"
+              type="email"
+              class="input input-bordered bg-gray-700"
+              required
+            />
           </div>
-          <div class="mt-6 flex justify-end space-x-3">
-            <button
-              type="button"
-              @click="showCreateModal = false"
-              class="px-4 py-2 border border-gray-700 rounded-md text-gray-300 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 focus:ring-offset-gray-800"
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Password</span>
+            </label>
+            <input 
+              v-model="newUser.password"
+              type="password"
+              class="input input-bordered bg-gray-700"
+              required
+            />
+          </div>
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Ruolo</span>
+            </label>
+            <select 
+              v-model="newUser.role"
+              class="select select-bordered bg-gray-700"
+              required
             >
-              Annulla
-            </button>
-            <button
-              type="submit"
-              class="px-4 py-2 bg-yellow-500 text-black rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 focus:ring-offset-gray-800"
-            >
-              Crea Utente
+              <option value="admin">Admin</option>
+              <option value="coach">Coach</option>
+              <option value="athlete">Atleta</option>
+            </select>
+          </div>
+          <div class="form-control" v-if="newUser.role === 'athlete'">
+            <label class="label">
+              <span class="label-text">Coach ID</span>
+            </label>
+            <input 
+              v-model="newUser.coach_id"
+              type="number"
+              class="input input-bordered bg-gray-700"
+              required
+            />
+          </div>
+          <div class="modal-action flex-col sm:flex-row gap-2">
+            <button type="button" class="btn w-full sm:w-auto" @click="closeCreateModal" :disabled="userManagementStore.loading">Annulla</button>
+            <button type="submit" class="btn btn-warning w-full sm:w-auto" :disabled="userManagementStore.loading">
+              {{ userManagementStore.loading ? 'Creazione...' : 'Crea' }}
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </dialog>
+
+    <!-- Modale Modifica Utente -->
+    <dialog ref="editModal" class="modal">
+      <div class="modal-box bg-gray-800 w-11/12 max-w-md">
+        <h3 class="font-bold text-lg mb-4">Modifica Utente</h3>
+        <form @submit.prevent="handleUpdateUser">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Email</span>
+            </label>
+            <input 
+              v-model="editingUser.email"
+              type="email"
+              class="input input-bordered bg-gray-700"
+              readonly
+            />
+          </div>
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Ruolo</span>
+            </label>
+            <select 
+              v-model="editingUser.role"
+              class="select select-bordered bg-gray-700"
+              required
+            >
+              <option value="admin">Admin</option>
+              <option value="coach">Coach</option>
+              <option value="athlete">Atleta</option>
+            </select>
+          </div>
+          <div class="form-control" v-if="editingUser.role === 'athlete'">
+            <label class="label">
+              <span class="label-text">Coach ID</span>
+            </label>
+            <input 
+              v-model="editingUser.coach_id"
+              type="number"
+              class="input input-bordered bg-gray-700"
+              required
+            />
+          </div>
+          <div class="form-control">
+            <label class="label cursor-pointer">
+              <span class="label-text">Stato Attivo</span>
+              <input 
+                type="checkbox"
+                v-model="editingUser.is_active"
+                class="toggle toggle-warning"
+              />
+            </label>
+          </div>
+          <div class="modal-action flex-col sm:flex-row gap-2">
+            <button type="button" class="btn w-full sm:w-auto" @click="closeEditModal" :disabled="userManagementStore.loading">Annulla</button>
+            <button type="submit" class="btn btn-warning w-full sm:w-auto" :disabled="userManagementStore.loading">
+              {{ userManagementStore.loading ? 'Salvataggio...' : 'Salva' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </dialog>
   </div>
 </template> 
