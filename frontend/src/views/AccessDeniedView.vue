@@ -9,14 +9,23 @@ const goBack = () => {
 </script>
 
 <template>
-  <div class="hero min-h-screen bg-base-200">
-    <div class="hero-content text-center">
-      <div class="max-w-md">
-        <h1 class="text-5xl font-bold text-error">Access Denied</h1>
-        <p class="py-6 text-base-content">
-          You don't have permission to access this page. Please contact your administrator if you believe this is an error.
+  <div class="min-h-screen flex items-center justify-center bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 text-center">
+      <div>
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-white">
+          Accesso Negato
+        </h2>
+        <p class="mt-2 text-center text-sm text-gray-400">
+          Non hai i permessi necessari per accedere a questa pagina.
         </p>
-        <button @click="goBack" class="btn btn-warning">Go Back</button>
+      </div>
+      <div class="mt-8">
+        <router-link
+          to="/login"
+          class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-black bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+        >
+          Torna al Login
+        </router-link>
       </div>
     </div>
   </div>

@@ -1,15 +1,25 @@
 <script setup>
-import { useAuthStore } from '@/store/auth';
-import Navbar from '@/components/layouts/Navbar.vue';
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+import AppLayout from './layouts/AppLayout.vue';
+import AuthLayout from './layouts/AuthLayout.vue';
 
-const authStore = useAuthStore();
+const route = useRoute();
+const layout = computed(() => {
+  if (route.meta.layout === 'AppLayout') {
+    return AppLayout;
+  }
+  if (route.meta.layout === 'AuthLayout') {
+    return AuthLayout;
+  }
+  return 'div'; // Fallback to a simple div if no layout specified
+});
 </script>
 
 <template>
-  <div class="min-h-screen bg-base-300">
-    <Navbar v-if="authStore.isUserAuthenticated" />
+  <component :is="layout">
     <router-view />
-  </div>
+  </component>
 </template>
 
 <style scoped>

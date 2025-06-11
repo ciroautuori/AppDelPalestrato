@@ -1,8 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '@/store/auth';
+import LoginView from '@/views/LoginView.vue';
+import AdminDashboardView from '@/views/AdminDashboardView.vue';
+import CoachDashboardView from '@/views/CoachDashboardView.vue';
+import AthleteDashboardView from '@/views/AthleteDashboardView.vue';
+import AccessDeniedView from '@/views/AccessDeniedView.vue';
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
@@ -25,32 +30,32 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: () => import('@/views/LoginView.vue'),
-      meta: { requiresAuth: false },
+      component: LoginView,
+      meta: { layout: 'AuthLayout' }
     },
     {
       path: '/admin/dashboard',
       name: 'admin-dashboard',
-      component: () => import('@/views/AdminDashboardView.vue'),
-      meta: { requiresAuth: true, roles: ['admin'] },
+      component: AdminDashboardView,
+      meta: { layout: 'AppLayout' }
     },
     {
       path: '/coach/dashboard',
       name: 'coach-dashboard',
-      component: () => import('@/views/CoachDashboardView.vue'),
-      meta: { requiresAuth: true, roles: ['coach'] },
+      component: CoachDashboardView,
+      meta: { layout: 'AppLayout' }
     },
     {
       path: '/athlete/dashboard',
       name: 'athlete-dashboard',
-      component: () => import('@/views/AthleteDashboardView.vue'),
-      meta: { requiresAuth: true, roles: ['athlete'] },
+      component: AthleteDashboardView,
+      meta: { layout: 'AppLayout' }
     },
     {
       path: '/access-denied',
       name: 'access-denied',
-      component: () => import('@/views/AccessDeniedView.vue'),
-      meta: { requiresAuth: false },
+      component: AccessDeniedView,
+      meta: { layout: 'AuthLayout' }
     },
     {
       path: '/:pathMatch(.*)*',
