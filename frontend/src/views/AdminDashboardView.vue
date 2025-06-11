@@ -4,9 +4,37 @@ import { useAuthStore } from '@/store/auth';
 import { useToastStore } from '@/store/toast'; // Kept for potential dashboard level toasts
 import Toast from '@/components/Toast.vue'; // Kept for potential dashboard level toasts
 // onMounted and computed related to userManagementStore removed
+import { statsService } from '@/services/statsService';
+import { ref, onMounted } from 'vue';
 
 const authStore = useAuthStore();
 const toastStore = useToastStore(); // May be used by other dashboard elements later
+
+const stats = ref({
+  totalUsers: '--',
+  activeCoaches: '--',
+  activeAthletes: '--',
+  totalPlans: '--'
+});
+
+const loading = ref(true);
+
+const fetchStats = async () => {
+  try {
+    loading.value = true;
+    const data = await statsService.getAdminStats();
+    stats.value = data;
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    toastStore.show('Errore nel caricamento delle statistiche', 'error');
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchStats();
+});
 
 // Any other dashboard specific logic can remain or be added here in the future
 </script>
@@ -18,7 +46,7 @@ const toastStore = useToastStore(); // May be used by other dashboard elements l
     <h1 class="text-3xl font-bold text-yellow-500 mb-8">Admin Dashboard</h1>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-      <!-- Card Utenti Totali Placeholder -->
+      <!-- Card Utenti Totali -->
       <div class="card bg-base-200 shadow-xl">
         <div class="card-body">
           <div class="flex items-center justify-between mb-2">
@@ -29,12 +57,12 @@ const toastStore = useToastStore(); // May be used by other dashboard elements l
               </svg>
             </div>
           </div>
-          <p class="text-3xl font-bold text-base-content">--</p>
+          <p class="text-3xl font-bold text-base-content">{{ loading ? '...' : stats.totalUsers }}</p>
           <p class="text-xs text-base-content/50 mt-1">Conteggio utenti totali</p>
         </div>
       </div>
 
-      <!-- Card Coach Attivi Placeholder -->
+      <!-- Card Coach Attivi -->
       <div class="card bg-base-200 shadow-xl">
         <div class="card-body">
           <div class="flex items-center justify-between mb-2">
@@ -45,12 +73,12 @@ const toastStore = useToastStore(); // May be used by other dashboard elements l
               </svg>
             </div>
           </div>
-          <p class="text-3xl font-bold text-base-content">--</p>
+          <p class="text-3xl font-bold text-base-content">{{ loading ? '...' : stats.activeCoaches }}</p>
           <p class="text-xs text-base-content/50 mt-1">Numero di coach attivi</p>
         </div>
       </div>
 
-      <!-- Card Atleti Attivi Placeholder -->
+      <!-- Card Atleti Attivi -->
       <div class="card bg-base-200 shadow-xl">
         <div class="card-body">
           <div class="flex items-center justify-between mb-2">
@@ -61,12 +89,12 @@ const toastStore = useToastStore(); // May be used by other dashboard elements l
                 </svg>
             </div>
           </div>
-          <p class="text-3xl font-bold text-base-content">--</p>
+          <p class="text-3xl font-bold text-base-content">{{ loading ? '...' : stats.activeAthletes }}</p>
           <p class="text-xs text-base-content/50 mt-1">Numero di atleti attivi</p>
         </div>
       </div>
 
-      <!-- Card Piani Allenamento Placeholder -->
+      <!-- Card Piani Allenamento -->
       <div class="card bg-base-200 shadow-xl">
         <div class="card-body">
           <div class="flex items-center justify-between mb-2">
@@ -77,7 +105,7 @@ const toastStore = useToastStore(); // May be used by other dashboard elements l
               </svg>
             </div>
           </div>
-          <p class="text-3xl font-bold text-base-content">--</p>
+          <p class="text-3xl font-bold text-base-content">{{ loading ? '...' : stats.totalPlans }}</p>
           <p class="text-xs text-base-content/50 mt-1">Numero di piani creati</p>
         </div>
       </div>
