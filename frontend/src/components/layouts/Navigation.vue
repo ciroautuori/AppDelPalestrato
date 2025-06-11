@@ -18,7 +18,7 @@
           class="group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors"
           :class="[
             $route.path === item.to
-              ? 'bg-gray-800 text-yellow-500'
+              ? 'bg-neutral text-yellow-500' // Changed bg-gray-800 to bg-neutral for active state
               : 'text-gray-300 hover:bg-gray-800 hover:text-yellow-500'
           ]"
         >

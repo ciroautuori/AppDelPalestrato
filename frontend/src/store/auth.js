@@ -8,6 +8,7 @@ export const useAuthStore = defineStore('auth', {
     accessToken: localStorage.getItem('accessToken'),
     refreshToken: localStorage.getItem('refreshToken'),
     isAuthenticated: !!localStorage.getItem('accessToken'),
+    isInitialized: false,
   }),
 
   getters: {
@@ -16,6 +17,19 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
+    async initializeStore() {
+      if (this.accessToken) {
+        try {
+          await this.fetchUser();
+          this.isAuthenticated = true;
+        } catch (error) {
+          console.error('Failed to initialize store:', error);
+          await this.logout();
+        }
+      }
+      this.isInitialized = true;
+    },
+
     async login(credentials) {
       try {
         const { access_token, refresh_token } = await authService.login(credentials);
