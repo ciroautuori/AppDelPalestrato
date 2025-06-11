@@ -3,7 +3,9 @@ import { useAuthStore } from '@/store/auth';
 import LoginView from '@/views/LoginView.vue';
 import AdminDashboardView from '@/views/AdminDashboardView.vue';
 import UserManagementView from '@/views/admin/UserManagementView.vue'; // Added import
-import CoachDashboardView from '@/views/CoachDashboardView.vue';
+import CoachDashboardView from '@/views/coach/CoachDashboardView.vue'; // Corrected path
+import MyAthletesView from '@/views/coach/MyAthletesView.vue'; // Added import
+import MyPlansView from '@/views/coach/MyPlansView.vue';     // Added import
 import AthleteDashboardView from '@/views/AthleteDashboardView.vue';
 import AccessDeniedView from '@/views/AccessDeniedView.vue';
 
@@ -48,15 +50,28 @@ const router = createRouter({
     },
     {
       path: '/coach/dashboard',
-      name: 'coach-dashboard',
+      name: 'CoachDashboard', // Changed name for consistency
       component: CoachDashboardView,
-      meta: { layout: 'AppLayout' }
+      meta: { requiresAuth: true, roles: ['coach'], layout: 'AppLayout' } // Updated meta
+    },
+    {
+      path: '/coach/my-athletes',
+      name: 'CoachMyAthletes',
+      component: MyAthletesView,
+      meta: { requiresAuth: true, roles: ['coach'], layout: 'AppLayout' }
+    },
+    {
+      path: '/coach/my-plans',
+      name: 'CoachMyPlans',
+      component: MyPlansView,
+      meta: { requiresAuth: true, roles: ['coach'], layout: 'AppLayout' }
     },
     {
       path: '/athlete/dashboard',
       name: 'athlete-dashboard',
       component: AthleteDashboardView,
-      meta: { layout: 'AppLayout' }
+      // Assuming athlete routes also need auth and role protection if they become more specific
+      meta: { requiresAuth: true, roles: ['athlete'], layout: 'AppLayout' }
     },
     {
       path: '/access-denied',
