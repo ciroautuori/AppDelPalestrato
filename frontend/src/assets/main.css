@@ -1,3 +1,12 @@
 @tailwind base;
 @tailwind components;
-@tailwind utilities; 
+@tailwind utilities;
+
+/* Stile base opzionale per html per rispettare il tema */
+@layer base {
+  html {
+    /* Questi colori verranno dal tema 'night' di DaisyUI grazie a Tailwind */
+    /* Oppure puoi forzare qui i tuoi colori custom se preferisci: */
+    /* @apply bg-brand-dark text-brand-light; */
+  }
+} 
