@@ -6,6 +6,7 @@ import UserManagementView from '@/views/admin/UserManagementView.vue'; // Added 
 import CoachDashboardView from '@/views/coach/CoachDashboardView.vue'; // Corrected path
 import MyAthletesView from '@/views/coach/MyAthletesView.vue'; // Added import
 import MyPlansView from '@/views/coach/MyPlansView.vue';     // Added import
+import ExerciseManagementView from '@/views/coach/ExerciseManagementView.vue';
 import AthleteDashboardView from '@/views/AthleteDashboardView.vue';
 import AccessDeniedView from '@/views/AccessDeniedView.vue';
 
@@ -64,6 +65,12 @@ const router = createRouter({
       path: '/coach/my-plans',
       name: 'CoachMyPlans',
       component: MyPlansView,
+      meta: { requiresAuth: true, roles: ['coach'], layout: 'AppLayout' }
+    },
+    {
+      path: '/coach/exercises',
+      name: 'CoachExercises',
+      component: ExerciseManagementView,
       meta: { requiresAuth: true, roles: ['coach'], layout: 'AppLayout' }
     },
     {
