@@ -25,7 +25,7 @@
     <div v-else-if="myPlans.length > 0">
       <PlansTable
         :plans="myPlans"
-        @view-plan="viewPlan"
+        @view-details="viewPlanDetails"
         @edit-plan="openEditPlanModal"
         @delete-plan="confirmDeletePlan"
       />
@@ -33,7 +33,7 @@
 
     <!-- Empty State -->
     <div v-else class="text-center py-8">
-      <p class="text-lg text-gray-600">
+      <p class="text-lg text-gray-500">
         Non hai ancora creato nessun piano. Clicca 'Crea Nuovo Piano' per iniziare.
       </p>
     </div>
@@ -42,32 +42,33 @@
     <PlanFormModal
       :show="showPlanModal"
       :plan-to-edit="planToEdit"
-      :is-submitting="isSubmitting"
+      :is-submitting="isSubmittingForm"
       @close="closePlanModal"
       @save="handlePlanSave"
     />
 
     <!-- Delete Confirmation Modal -->
     <dialog id="delete_plan_modal" class="modal" :class="{ 'modal-open': showDeleteModal }">
-      <div class="modal-box">
+      <div class="modal-box bg-gray-800">
         <h3 class="font-bold text-lg">Conferma Eliminazione</h3>
         <p class="py-4">Sei sicuro di voler eliminare il piano "{{ planToDelete?.name }}"?</p>
         <div class="modal-action">
-          <button class="btn" @click="showDeleteModal = false">Annulla</button>
-          <button 
-            class="btn btn-error" 
-            @click="deletePlan"
-            :disabled="isSubmitting"
+          <button class="btn btn-ghost" @click="closeDeleteModal" :disabled="isDeleting">Annulla</button>
+          <button
+            class="btn btn-error"
+            @click="executeDeletePlan"
+            :disabled="isDeleting"
           >
-            <span v-if="isSubmitting" class="loading loading-spinner loading-sm"></span>
+            <span v-if="isDeleting" class="loading loading-spinner loading-sm"></span>
             Elimina
           </button>
         </div>
       </div>
       <form method="dialog" class="modal-backdrop">
-        <button @click="showDeleteModal = false">close</button>
+        <button @click="closeDeleteModal">close</button>
       </form>
     </dialog>
+    <Toast />
   </div>
 </template>
 
@@ -77,28 +78,28 @@ import { useCoachStore } from '@/store/coach';
 import { useToastStore } from '@/store/toast';
 import PlansTable from '@/components/coach/PlansTable.vue';
 import PlanFormModal from '@/components/coach/PlanFormModal.vue';
+import Toast from '@/components/Toast.vue'; // Assicurati che Toast sia importato se non è globale
 
 const coachStore = useCoachStore();
 const toastStore = useToastStore();
 
-// Computed properties
 const myPlans = computed(() => coachStore.myPlans);
 
-// State
 const showPlanModal = ref(false);
-const showDeleteModal = ref(false);
 const planToEdit = ref(null);
-const planToDelete = ref(null);
-const isSubmitting = ref(false);
+const isSubmittingForm = ref(false); // Per il modale del form
 
-// Methods
+const showDeleteModal = ref(false);
+const planToDelete = ref(null);
+const isDeleting = ref(false); // Per il modale di eliminazione
+
 const openCreatePlanModal = () => {
   planToEdit.value = null;
   showPlanModal.value = true;
 };
 
 const openEditPlanModal = (plan) => {
-  planToEdit.value = plan;
+  planToEdit.value = { ...plan }; // Pass a copy to avoid direct mutation if plan is reactive from store
   showPlanModal.value = true;
 };
 
@@ -108,61 +109,96 @@ const closePlanModal = () => {
 };
 
 const handlePlanSave = async (planData) => {
-  isSubmitting.value = true;
+  isSubmittingForm.value = true;
   try {
-    if (planToEdit.value) {
+    if (planToEdit.value && planToEdit.value.id) {
       await coachStore.updatePlan(planToEdit.value.id, planData);
-      toastStore.showToast('Piano aggiornato con successo', 'success');
+      toastStore.showToast('Piano aggiornato con successo!', 'success');
     } else {
       await coachStore.createPlan(planData);
-      toastStore.showToast('Piano creato con successo', 'success');
+      toastStore.showToast('Piano creato con successo!', 'success');
     }
     closePlanModal();
+    // Non è necessario chiamare fetchMyPlans manualmente se lo store lo fa già dopo create/update
   } catch (error) {
-    toastStore.showToast(
-      error.response?.data?.detail || 'Errore durante il salvataggio del piano',
-      'error'
-    );
+    const message = error.response?.data?.detail || error.message || 'Errore durante il salvataggio del piano.';
+    toastStore.showToast(message, 'error');
   } finally {
-    isSubmitting.value = false;
+    isSubmittingForm.value = false;
   }
 };
 
 const confirmDeletePlan = (plan) => {
   planToDelete.value = plan;
   showDeleteModal.value = true;
+  // Per DaisyUI modale, se si usa <dialog> e JS per controllarlo:
+  // const modal = document.getElementById('delete_plan_modal');
+  // if (modal) modal.showModal();
 };
 
-const deletePlan = async () => {
-  if (!planToDelete.value) return;
-  
-  isSubmitting.value = true;
+const closeDeleteModal = () => {
+  showDeleteModal.value = false;
+  planToDelete.value = null;
+  // const modal = document.getElementById('delete_plan_modal');
+  // if (modal) modal.close();
+};
+
+const executeDeletePlan = async () => {
+  if (!planToDelete.value || !planToDelete.value.id) return;
+
+  isDeleting.value = true;
   try {
     await coachStore.deletePlan(planToDelete.value.id);
-    showDeleteModal.value = false;
-    planToDelete.value = null;
-    toastStore.showToast('Piano eliminato con successo', 'success');
+    toastStore.showToast('Piano eliminato con successo!', 'success');
+    closeDeleteModal();
+    // Non è necessario chiamare fetchMyPlans manualmente se lo store lo fa già dopo delete
   } catch (error) {
-    toastStore.showToast(
-      error.response?.data?.detail || 'Errore durante l\'eliminazione del piano',
-      'error'
-    );
+    const message = error.response?.data?.detail || error.message || 'Errore durante l'eliminazione del piano.';
+    toastStore.showToast(message, 'error');
   } finally {
-    isSubmitting.value = false;
+    isDeleting.value = false;
   }
 };
 
-const viewPlan = (plan) => {
-  // TODO: Implement view plan details
-  console.log('View plan:', plan);
+const viewPlanDetails = (plan) => {
+  // TODO: Implementare la logica per visualizzare i dettagli del piano.
+  // Potrebbe essere una navigazione a una nuova vista o un altro modale.
+  console.log('View plan details:', plan);
+  toastStore.showToast(`Dettagli per piano: ${plan.name} (ID: ${plan.id}) - Implementazione richiesta.`, 'info');
 };
 
-// Lifecycle hooks
 onMounted(async () => {
-  try {
-    await coachStore.fetchMyPlans();
-  } catch (error) {
-    toastStore.showToast('Errore nel caricamento dei piani', 'error');
+  // Il toast per errore fetch è già gestito nello store coach.js, ma possiamo aggiungerne uno qui se necessario
+  // o affidarci a quello dello store.
+  // Per ora, presumo che lo store gestisca la notifica di errore fetch iniziale.
+  if (!coachStore.myPlans || coachStore.myPlans.length === 0) {
+      try {
+        await coachStore.fetchMyPlans();
+      } catch (error) {
+        // Lo store coach.js dovrebbe già gestire l'errore e impostare plansError
+        // Se si vuole mostrare un toast anche qui in aggiunta:
+        // const message = error.response?.data?.detail || 'Errore nel caricamento iniziale dei piani.';
+        // toastStore.showToast(message, 'error');
+        console.error("Failed to fetch plans on mount:", error);
+      }
   }
 });
 </script>
+
+<style scoped>
+/* Stili specifici per MyPlansView, se necessari */
+.container {
+  max-width: 1200px; /* Esempio di larghezza massima */
+}
+.btn-primary {
+  /* Assicurati che i colori siano allineati con DaisyUI o temi personalizzati */
+}
+.modal-box {
+  /* Sovrascrivi o aggiungi stili al modal-box di DaisyUI se necessario */
+}
+
+/* Stile per l'icona nel bottone "Crea Nuovo Piano", se non si usa una libreria di icone CSS */
+.btn-primary i.fas.fa-plus {
+  /* Esempio se si usa FontAwesome via CSS. Se si usa SVG inline, non è necessario */
+}
+</style>

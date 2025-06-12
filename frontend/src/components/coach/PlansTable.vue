@@ -1,41 +1,28 @@
 <template>
-  <div class="overflow-x-auto bg-base-100 rounded-lg shadow">
+  <div class="overflow-x-auto bg-gray-800 rounded-lg shadow">
     <table class="table w-full">
       <thead>
-        <tr>
+        <tr class="text-gray-400">
+          <th>ID</th>
           <th>Nome</th>
           <th>Descrizione</th>
-          <th>Esercizi</th>
-          <th>Azioni</th>
+          <th class="text-right">Azioni</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="plan in plans" :key="plan.id" class="hover:bg-base-200">
-          <td class="font-medium">{{ plan.name }}</td>
-          <td>{{ plan.description || 'Nessuna descrizione' }}</td>
-          <td>{{ plan.exercises?.length || 0 }} esercizi</td>
-          <td class="space-x-2">
-            <button 
-              class="btn btn-sm btn-ghost" 
-              @click="$emit('view-plan', plan)"
-              title="Visualizza dettagli"
-            >
-              <i class="fas fa-eye"></i>
-            </button>
-            <button 
-              class="btn btn-sm btn-ghost" 
-              @click="$emit('edit-plan', plan)"
-              title="Modifica piano"
-            >
-              <i class="fas fa-edit"></i>
-            </button>
-            <button 
-              class="btn btn-sm btn-ghost text-error" 
-              @click="$emit('delete-plan', plan)"
-              title="Elimina piano"
-            >
-              <i class="fas fa-trash"></i>
-            </button>
+        <tr v-if="!plans || plans.length === 0">
+          <td colspan="4" class="text-center py-4">Nessun piano trovato.</td>
+        </tr>
+        <tr v-for="plan in plans" :key="plan.id" class="hover:bg-gray-700">
+          <td>{{ plan.id }}</td>
+          <td>{{ plan.name }}</td>
+          <td>{{ plan.description }}</td>
+          <td class="text-right">
+            <div class="flex flex-col sm:flex-row gap-2 justify-end">
+              <button @click="$emit('view-details', plan)" class="btn btn-xs btn-info w-full sm:w-auto">Dettagli</button>
+              <button @click="$emit('edit-plan', plan)" class="btn btn-xs btn-warning w-full sm:w-auto">Modifica</button>
+              <button @click="$emit('delete-plan', plan)" class="btn btn-xs btn-error w-full sm:w-auto">Elimina</button>
+            </div>
           </td>
         </tr>
       </tbody>
@@ -47,9 +34,22 @@
 defineProps({
   plans: {
     type: Array,
-    required: true
+    required: true,
+    default: () => []
   }
 });
 
-defineEmits(['view-plan', 'edit-plan', 'delete-plan']);
-</script> 
+defineEmits(['view-details', 'edit-plan', 'delete-plan']);
+</script>
+
+<style scoped>
+.table th,
+.table td {
+  white-space: nowrap; /* Prevent text wrapping in table cells */
+  padding: 0.75rem; /* Standard padding */
+}
+.btn-xs {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+</style>
