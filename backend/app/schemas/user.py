@@ -17,6 +17,7 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     is_active: Optional[bool] = None
     coach_id: Optional[int] = None
+    role: Optional[UserRole] = None
 
 
 class UserInDB(UserBase):
