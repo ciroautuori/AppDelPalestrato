@@ -88,6 +88,16 @@ const router = createRouter({
       meta: { requiresAuth: true, roles: ['athlete'], layout: 'AppLayout' }
     },
     {
+      path: '/athlete/history',
+      name: 'athlete-history',
+      component: () => import('@/views/athlete/HistoryView.vue'),
+      meta: {
+        requiresAuth: true,
+        role: 'athlete',
+        layout: 'AppLayout'
+      }
+    },
+    {
       path: '/access-denied',
       name: 'access-denied',
       component: AccessDeniedView,
