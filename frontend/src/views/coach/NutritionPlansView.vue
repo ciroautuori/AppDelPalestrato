@@ -1,27 +1,36 @@
 <template>
-  <div class="p-4 md:p-6 lg:p-8">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-4 md:mb-0">Piani Nutrizionali</h1>
+  <div class="p-4">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <h1 class="text-2xl font-bold text-yellow-500">Piani Nutrizionali</h1>
       <button
         @click="openCreateModal"
-        class="w-full md:w-auto px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+        class="btn btn-warning w-full sm:w-auto"
+        :disabled="isLoading"
       >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
         Crea Nuovo Piano
       </button>
     </div>
 
-    <div v-if="isLoading" class="flex justify-center items-center min-h-[200px]">
-      <div class="loading loading-spinner loading-lg text-primary"></div>
+    <!-- Loading Spinner -->
+    <div v-if="isLoading" class="flex justify-center items-center py-8">
+      <div class="loading loading-spinner loading-lg text-warning"></div>
     </div>
 
-    <div v-else>
-      <div class="overflow-x-auto">
-        <NutritionPlansTable
-          :plans="nutritionPlans"
-          @edit-plan="openEditModal"
-          @delete-plan="handleDeletePlan"
-        />
-      </div>
+    <!-- Error Message -->
+    <div v-if="error" class="alert alert-error mb-4">
+      <span>{{ error }}</span>
+    </div>
+
+    <!-- Content -->
+    <div v-else class="overflow-x-auto bg-gray-800 rounded-lg shadow">
+      <NutritionPlansTable
+        :plans="nutritionPlans"
+        @edit-plan="openEditModal"
+        @delete-plan="handleDeletePlan"
+      />
     </div>
 
     <NutritionPlanFormModal
@@ -43,6 +52,7 @@ const nutritionStore = useNutritionStore();
 
 const nutritionPlans = computed(() => nutritionStore.nutritionPlans);
 const isLoading = computed(() => nutritionStore.isLoading);
+const error = computed(() => nutritionStore.error);
 
 const isModalOpen = ref(false);
 const planToEdit = ref(null);
