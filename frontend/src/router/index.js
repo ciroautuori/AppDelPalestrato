@@ -93,7 +93,8 @@ const router = createRouter({
       component: () => import('@/views/athlete/HistoryView.vue'),
       meta: {
         requiresAuth: true,
-        role: 'athlete'
+        role: 'athlete',
+        layout: 'AppLayout'
       }
     },
     {

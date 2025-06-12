@@ -1,11 +1,13 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
+  <div class="p-4">
     <Toast />
-    <h1 class="text-2xl font-bold text-warning mb-6">Mio Storico Allenamenti</h1>
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <h1 class="text-2xl font-bold text-yellow-500">Mio Storico Allenamenti</h1>
+    </div>
 
     <!-- Loading State -->
     <div v-if="athleteStore.isLoading" class="flex justify-center items-center py-8">
-      <span class="loading loading-spinner loading-lg text-warning"></span>
+      <div class="loading loading-spinner loading-lg text-warning"></div>
     </div>
 
     <!-- Error State -->
@@ -30,12 +32,14 @@
     </div>
 
     <!-- Workout History List -->
-    <div v-else class="space-y-4">
-      <WorkoutHistoryCard
-        v-for="workoutLog in workoutHistory"
-        :key="workoutLog.id"
-        :workout-log="workoutLog"
-      />
+    <div v-else class="overflow-x-auto bg-gray-800 rounded-lg shadow">
+      <div class="space-y-4 p-4">
+        <WorkoutHistoryCard
+          v-for="workoutLog in workoutHistory"
+          :key="workoutLog.id"
+          :workout-log="workoutLog"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -56,4 +60,12 @@ onMounted(async () => {
     console.error('Error fetching workout history:', error);
   }
 });
-</script> 
+</script>
+
+<style scoped>
+/* Custom styles if needed */
+.overflow-x-auto {
+  max-width: 100%;
+  margin: 0 auto;
+}
+</style> 
