@@ -36,6 +36,25 @@
           <p v-if="formErrors.description" class="text-error text-xs mt-1">{{ formErrors.description }}</p>
         </div>
 
+        <!-- Livello di Difficoltà -->
+        <div class="form-control mb-4">
+          <label class="label" for="difficulty-level">
+            <span class="label-text">Livello di Difficoltà</span>
+          </label>
+          <select
+            id="difficulty-level"
+            v-model="formData.difficulty_level"
+            class="select select-bordered select-warning w-full"
+            required
+          >
+            <option disabled value="">Seleziona un livello</option>
+            <option value="beginner">Principiante</option>
+            <option value="intermediate">Intermedio</option>
+            <option value="advanced">Avanzato</option>
+          </select>
+          <p v-if="formErrors.difficulty_level" class="text-error text-xs mt-1">{{ formErrors.difficulty_level }}</p>
+        </div>
+
         <!-- Dettagli Esercizi Dinamici -->
         <h4 class="font-semibold text-md mb-2">Esercizi</h4>
         <div v-if="exerciseStore.loading" class="text-center"><span class="loading loading-spinner text-warning"></span> Caricamento esercizi...</div>
@@ -124,6 +143,7 @@ const availableExercises = computed(() => exerciseStore.getExercises);
 const initialFormData = {
   name: '',
   description: '',
+  difficulty_level: '',
   exercise_details: [] // Array di oggetti { exercise_id: null, sets: null, reps: null, rest_time_seconds: null }
 };
 
@@ -145,6 +165,7 @@ watch(() => props.show, (newVal) => {
       formData.value = {
         name: props.planToEdit.name || '',
         description: props.planToEdit.description || '',
+        difficulty_level: props.planToEdit.difficulty_level || '',
         // Deep copy exercise_details and ensure all fields are present
         exercise_details: props.planToEdit.exercise_details ? JSON.parse(JSON.stringify(props.planToEdit.exercise_details)).map(ed => ({
             exercise_id: ed.exercise_id,
@@ -189,6 +210,9 @@ const validateForm = () => {
   if (!formData.value.description.trim()) {
     errors.description = 'La descrizione del piano è obbligatoria.';
   }
+  if (!formData.value.difficulty_level) {
+    errors.difficulty_level = 'Il livello di difficoltà è obbligatorio.';
+  }
   if (!formData.value.exercise_details || formData.value.exercise_details.length === 0) {
     errors.exercise_details = 'Devi includere almeno un esercizio nel piano.';
   } else {
@@ -213,10 +237,15 @@ const validateForm = () => {
 
 const submitForm = () => {
   if (validateForm()) {
-    // Prepare data for submission: remove any temporary IDs from exercise_details if they exist
+    // Prepare data for submission with correct types and order_in_plan
     const dataToSave = {
       ...formData.value,
-      exercise_details: formData.value.exercise_details.map(({ id, ...rest }) => rest) // eslint-disable-line no-unused-vars
+      exercise_details: formData.value.exercise_details.map(({ id, ...rest }, index) => ({
+        ...rest,
+        sets: String(rest.sets),
+        reps: String(rest.reps),
+        order_in_plan: index + 1
+      }))
     };
     emit('save', dataToSave);
   }
