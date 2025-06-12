@@ -43,7 +43,7 @@
         <!-- Descrizione -->
         <div class="form-control mb-4">
           <label class="label" for="exercise-description">
-            <span class="label-text">Descrizione</span>
+            <span class="label-text">Descrizione (opzionale)</span>
           </label>
           <textarea
             id="exercise-description"
@@ -51,7 +51,6 @@
             placeholder="Descrizione dell'esercizio"
             class="textarea textarea-bordered textarea-warning w-full"
             rows="3"
-            required
           ></textarea>
           <p v-if="formErrors.description" class="text-error text-xs mt-1">{{ formErrors.description }}</p>
         </div>
@@ -156,9 +155,6 @@ const validateForm = () => {
   if (!formData.value.muscle_group) {
     errors.muscle_group = 'Il gruppo muscolare è obbligatorio.';
   }
-  if (!formData.value.description.trim()) {
-    errors.description = 'La descrizione dell\'esercizio è obbligatoria.';
-  }
   if (formData.value.video_url && !isValidUrl(formData.value.video_url)) {
     errors.video_url = 'L\'URL del video non è valido.';
   }
@@ -177,7 +173,20 @@ const isValidUrl = (url) => {
 
 const submitForm = () => {
   if (validateForm()) {
-    emit('save', formData.value);
+    // Create a copy of the form data
+    const payload = { ...formData.value };
+
+    // Remove video_url if it's an empty string
+    if (payload.video_url === '') {
+      delete payload.video_url;
+    }
+
+    // Remove description if it's an empty string (since it's optional)
+    if (payload.description === '') {
+      delete payload.description;
+    }
+
+    emit('save', payload);
   }
 };
 
