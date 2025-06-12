@@ -10,7 +10,8 @@
         <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
           <li v-if="isCoach"><router-link to="/coach/dashboard">Dashboard</router-link></li>
           <li v-if="isCoach"><router-link to="/coach/my-athletes">I Miei Atleti</router-link></li>
-          <li v-if="isCoach"><router-link to="/coach/my-plans">I Miei Piani</router-link></li>
+          <li v-if="isCoach"><router-link to="/coach/my-plans">Piani di Allenamento</router-link></li>
+          <li v-if="isCoach"><router-link to="/coach/nutrition-plans">Piani Nutrizionali</router-link></li>
           <li v-if="isCoach"><router-link to="/coach/exercises">Esercizi</router-link></li>
           <li v-if="isAdmin"><router-link to="/admin/dashboard">Dashboard</router-link></li>
           <li v-if="isAdmin"><router-link to="/admin/users">Gestione Utenti</router-link></li>
@@ -23,7 +24,8 @@
       <ul class="menu menu-horizontal px-1">
         <li v-if="isCoach"><router-link to="/coach/dashboard">Dashboard</router-link></li>
         <li v-if="isCoach"><router-link to="/coach/my-athletes">I Miei Atleti</router-link></li>
-        <li v-if="isCoach"><router-link to="/coach/my-plans">I Miei Piani</router-link></li>
+        <li v-if="isCoach"><router-link to="/coach/my-plans">Piani di Allenamento</router-link></li>
+        <li v-if="isCoach"><router-link to="/coach/nutrition-plans">Piani Nutrizionali</router-link></li>
         <li v-if="isCoach"><router-link to="/coach/exercises">Esercizi</router-link></li>
         <li v-if="isAdmin"><router-link to="/admin/dashboard">Dashboard</router-link></li>
         <li v-if="isAdmin"><router-link to="/admin/users">Gestione Utenti</router-link></li>

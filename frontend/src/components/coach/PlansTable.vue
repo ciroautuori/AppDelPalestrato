@@ -19,7 +19,6 @@
           <td>{{ plan.description }}</td>
           <td class="text-right">
             <div class="flex flex-col sm:flex-row gap-2 justify-end">
-              <button @click="$emit('view-details', plan)" class="btn btn-xs btn-info w-full sm:w-auto">Dettagli</button>
               <button @click="$emit('edit-plan', plan)" class="btn btn-xs btn-warning w-full sm:w-auto">Modifica</button>
               <button @click="$emit('delete-plan', plan)" class="btn btn-xs btn-error w-full sm:w-auto">Elimina</button>
             </div>
@@ -39,7 +38,7 @@ defineProps({
   }
 });
 
-defineEmits(['view-details', 'edit-plan', 'delete-plan']);
+defineEmits(['edit-plan', 'delete-plan']);
 </script>
 
 <style scoped>

@@ -1,89 +1,86 @@
 <template>
-  <dialog ref="dialogRef" class="modal" :class="{ 'modal-open': show }" @close="closeModal">
+  <dialog ref="dialogRef" class="modal modal-bottom sm:modal-middle" :class="{ 'modal-open': show }" @close="closeModal">
     <div class="modal-box bg-gray-800 w-11/12 max-w-2xl">
       <form @submit.prevent="submitForm" novalidate>
         <button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @click="closeModal">✕</button>
-        <h3 class="font-bold text-lg mb-4">{{ isEditing ? 'Modifica Esercizio' : 'Crea Nuovo Esercizio' }}</h3>
+        <h3 class="font-bold text-lg mb-6">{{ isEditing ? 'Modifica Esercizio' : 'Crea Nuovo Esercizio' }}</h3>
 
-        <!-- Nome -->
-        <div class="form-control mb-4">
-          <label class="label" for="exercise-name">
-            <span class="label-text">Nome Esercizio</span>
-          </label>
-          <input
-            id="exercise-name"
-            v-model="formData.name"
-            type="text"
-            placeholder="Es: Squat"
-            class="input input-bordered input-warning w-full"
-            required
-          />
-          <p v-if="formErrors.name" class="text-error text-xs mt-1">{{ formErrors.name }}</p>
+        <div class="space-y-4">
+          <!-- Nome -->
+          <div class="form-control">
+            <label class="label" for="exercise-name">
+              <span class="label-text">Nome Esercizio</span>
+            </label>
+            <input
+              id="exercise-name"
+              v-model="formData.name"
+              type="text"
+              placeholder="Es: Squat"
+              class="input input-bordered input-warning w-full"
+              required
+            />
+            <p v-if="formErrors.name" class="text-error text-xs mt-1">{{ formErrors.name }}</p>
+          </div>
+
+          <!-- Gruppo Muscolare -->
+          <div class="form-control">
+            <label class="label" for="muscle-group">
+              <span class="label-text">Gruppo Muscolare</span>
+            </label>
+            <select
+              id="muscle-group"
+              v-model="formData.muscle_group"
+              class="select select-bordered select-warning w-full"
+              required
+            >
+              <option disabled value="">Seleziona un gruppo muscolare</option>
+              <option v-for="group in muscleGroups" :key="group" :value="group">
+                {{ group }}
+              </option>
+            </select>
+            <p v-if="formErrors.muscle_group" class="text-error text-xs mt-1">{{ formErrors.muscle_group }}</p>
+          </div>
+
+          <!-- Descrizione -->
+          <div class="form-control">
+            <label class="label" for="description">
+              <span class="label-text">Descrizione</span>
+            </label>
+            <textarea
+              id="description"
+              v-model="formData.description"
+              class="textarea textarea-bordered textarea-warning w-full h-24"
+              placeholder="Descrivi l'esercizio..."
+            ></textarea>
+          </div>
+
+          <!-- URL Video -->
+          <div class="form-control">
+            <label class="label" for="video-url">
+              <span class="label-text">URL Video (opzionale)</span>
+            </label>
+            <input
+              id="video-url"
+              v-model="formData.video_url"
+              type="url"
+              placeholder="https://..."
+              class="input input-bordered input-warning w-full"
+            />
+            <p v-if="formErrors.video_url" class="text-error text-xs mt-1">{{ formErrors.video_url }}</p>
+          </div>
         </div>
 
-        <!-- Gruppo Muscolare -->
-        <div class="form-control mb-4">
-          <label class="label" for="muscle-group">
-            <span class="label-text">Gruppo Muscolare</span>
-          </label>
-          <select
-            id="muscle-group"
-            v-model="formData.muscle_group"
-            class="select select-bordered select-warning w-full"
-            required
-          >
-            <option disabled value="">Seleziona un gruppo muscolare</option>
-            <option v-for="group in muscleGroups" :key="group" :value="group">
-              {{ group }}
-            </option>
-          </select>
-          <p v-if="formErrors.muscle_group" class="text-error text-xs mt-1">{{ formErrors.muscle_group }}</p>
-        </div>
-
-        <!-- Descrizione -->
-        <div class="form-control mb-4">
-          <label class="label" for="exercise-description">
-            <span class="label-text">Descrizione</span>
-          </label>
-          <textarea
-            id="exercise-description"
-            v-model="formData.description"
-            placeholder="Descrizione dell'esercizio"
-            class="textarea textarea-bordered textarea-warning w-full"
-            rows="3"
-            required
-          ></textarea>
-          <p v-if="formErrors.description" class="text-error text-xs mt-1">{{ formErrors.description }}</p>
-        </div>
-
-        <!-- URL Video (opzionale) -->
-        <div class="form-control mb-4">
-          <label class="label" for="video-url">
-            <span class="label-text">URL Video (opzionale)</span>
-          </label>
-          <input
-            id="video-url"
-            v-model="formData.video_url"
-            type="url"
-            placeholder="https://..."
-            class="input input-bordered input-warning w-full"
-          />
-          <p v-if="formErrors.video_url" class="text-error text-xs mt-1">{{ formErrors.video_url }}</p>
-        </div>
-
-        <!-- Azioni Modale -->
-        <div class="modal-action flex-col sm:flex-row gap-2 mt-6">
-          <button type="button" class="btn btn-ghost w-full sm:w-auto" @click="closeModal" :disabled="isSubmitting">Annulla</button>
-          <button type="submit" class="btn btn-warning w-full sm:w-auto" :disabled="isSubmitting">
+        <!-- Action Buttons -->
+        <div class="modal-action">
+          <button type="button" class="btn btn-ghost" @click="closeModal" :disabled="isSubmitting">Annulla</button>
+          <button type="submit" class="btn btn-warning" :disabled="isSubmitting">
             <span v-if="isSubmitting" class="loading loading-spinner loading-xs"></span>
-            {{ isSubmitting ? (isEditing ? 'Salvataggio...' : 'Creazione...') : (isEditing ? 'Salva Modifiche' : 'Crea Esercizio') }}
+            {{ isEditing ? 'Aggiorna' : 'Crea' }}
           </button>
         </div>
       </form>
     </div>
-    <form method="dialog" class="modal-backdrop">
-      <button @click="closeModal">close</button>
-    </form>
+    <div class="modal-backdrop" @click="closeModal"></div>
   </dialog>
 </template>
 
@@ -156,9 +153,6 @@ const validateForm = () => {
   if (!formData.value.muscle_group) {
     errors.muscle_group = 'Il gruppo muscolare è obbligatorio.';
   }
-  if (!formData.value.description.trim()) {
-    errors.description = 'La descrizione dell\'esercizio è obbligatoria.';
-  }
   if (formData.value.video_url && !isValidUrl(formData.value.video_url)) {
     errors.video_url = 'L\'URL del video non è valido.';
   }
@@ -177,7 +171,20 @@ const isValidUrl = (url) => {
 
 const submitForm = () => {
   if (validateForm()) {
-    emit('save', formData.value);
+    // Create a copy of the form data
+    const payload = { ...formData.value };
+
+    // Remove video_url if it's an empty string
+    if (payload.video_url === '') {
+      delete payload.video_url;
+    }
+
+    // Remove description if it's an empty string (since it's optional)
+    if (payload.description === '') {
+      delete payload.description;
+    }
+
+    emit('save', payload);
   }
 };
 
@@ -191,14 +198,35 @@ const closeModal = () => {
 
 <style scoped>
 .modal-box {
-  max-height: calc(100vh - 5em);
+  @apply max-h-[90vh] overflow-y-auto;
 }
 
-.modal:not(dialog[open]) {
-  display: none;
+.modal-bottom {
+  @apply sm:modal-middle;
 }
 
-.modal-open {
-  display: grid;
+.form-control {
+  @apply space-y-1;
+}
+
+.label {
+  @apply p-0;
+}
+
+.label-text {
+  @apply text-sm font-medium;
+}
+
+.input, .select, .textarea {
+  @apply text-base;
+}
+
+.modal-action {
+  @apply mt-6 pt-4 border-t border-gray-700;
+}
+
+/* Ensure buttons are touch-friendly on mobile */
+.btn {
+  @apply min-h-[2.5rem] px-4;
 }
 </style> 
