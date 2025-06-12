@@ -1,72 +1,74 @@
 <template>
-  <div v-if="visible" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center">
-    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl"> {/* Increased width */}
-      <h2 class="text-2xl font-bold mb-6">{{ modalTitle }}</h2>
+  <div v-if="visible" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center p-4">
+    <div class="bg-white dark:bg-gray-800 p-4 md:p-8 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+      <h2 class="text-xl md:text-2xl font-bold mb-6 text-gray-800 dark:text-white">{{ modalTitle }}</h2>
       <form @submit.prevent="handleSubmit">
-        <div class="mb-4">
-          <label for="planName" class="block text-sm font-medium text-gray-700">Nome Piano</label>
-          <input
-            type="text"
-            id="planName"
-            v-model="form.name"
-            required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          />
-        </div>
-        <div class="mb-6">
-          <label for="planDescription" class="block text-sm font-medium text-gray-700">Descrizione</label>
-          <textarea
-            id="planDescription"
-            v-model="form.description"
-            rows="3"
-            required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          ></textarea>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          <div>
+            <label for="planName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome Piano</label>
+            <input
+              type="text"
+              id="planName"
+              v-model="form.name"
+              required
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            />
+          </div>
+          <div>
+            <label for="planDescription" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrizione</label>
+            <textarea
+              id="planDescription"
+              v-model="form.description"
+              rows="3"
+              required
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            ></textarea>
+          </div>
         </div>
 
-        <hr class="my-6">
+        <hr class="my-6 border-gray-200 dark:border-gray-600">
 
         <div>
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-semibold">Pasti</h3>
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+            <h3 class="text-lg md:text-xl font-semibold text-gray-800 dark:text-white">Pasti</h3>
             <button
               type="button"
               @click="addMeal"
-              class="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Aggiungi Pasto
             </button>
           </div>
 
-          <div v-if="form.meals.length === 0" class="text-sm text-gray-500 mb-4">
+          <div v-if="form.meals.length === 0" class="text-sm text-gray-500 dark:text-gray-400 mb-4">
             Nessun pasto aggiunto. Clicca "Aggiungi Pasto" per iniziare.
           </div>
 
-          <div v-for="(meal) in form.meals" :key="meal.id" class="mb-6 p-4 border border-gray-200 rounded-md bg-gray-50">
-            <div class="flex justify-between items-center mb-3">
+          <div v-for="(meal) in form.meals" :key="meal.id" class="mb-6 p-4 border border-gray-200 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
               <input
                 type="text"
                 v-model="meal.name"
                 placeholder="Nome del pasto (es. Colazione)"
                 required
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm mr-4"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               />
               <button
                 type="button"
                 @click="removeMeal(meal.id)"
-                class="px-3 py-1 text-sm font-medium text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                class="w-full sm:w-auto px-3 py-2 text-sm font-medium text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
               >
                 Rimuovi Pasto
               </button>
             </div>
 
             <div class="pl-4 mt-4 border-l-2 border-gray-200 dark:border-gray-600">
-              <div class="flex justify-between items-center mb-3">
+              <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-4">
                 <h4 class="text-md font-semibold text-gray-700 dark:text-gray-300">Alimenti per {{ meal.name || 'questo pasto' }}</h4>
                 <button
                   type="button"
                   @click="addFoodItem(meal)"
-                  class="px-3 py-1 text-xs font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  class="w-full sm:w-auto px-3 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                 >
                   Aggiungi Alimento
                 </button>
@@ -76,16 +78,15 @@
                 Nessun alimento aggiunto a questo pasto.
               </div>
 
-              <div v-for="(foodItem) in meal.foodItems" :key="foodItem.id" class="grid grid-cols-1 md:grid-cols-8 gap-2 mb-3 items-center">
-                {/* Food Item Inputs */}
-                <div class="md:col-span-2">
+              <div v-for="(foodItem) in meal.foodItems" :key="foodItem.id" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-8 gap-2 mb-3 items-center">
+                <div class="lg:col-span-2">
                   <label :for="`foodName-${meal.id}-${foodItem.id}`" class="sr-only">Nome Alimento</label>
                   <input
                     :id="`foodName-${meal.id}-${foodItem.id}`"
                     type="text"
                     v-model="foodItem.name"
                     placeholder="Nome alimento"
-                    class="mt-1 block w-full px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-xs"
+                    class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-xs"
                     required
                   />
                 </div>
@@ -96,7 +97,7 @@
                     type="text"
                     v-model="foodItem.quantity"
                     placeholder="Qtà"
-                    class="mt-1 block w-full px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-xs"
+                    class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-xs"
                   />
                 </div>
                 <div>
@@ -107,7 +108,7 @@
                     min="0"
                     v-model.number="foodItem.calories"
                     placeholder="Cal"
-                    class="mt-1 block w-full px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-xs"
+                    class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-xs"
                   />
                 </div>
                 <div>
@@ -118,7 +119,7 @@
                     min="0"
                     v-model.number="foodItem.protein"
                     placeholder="Pro (g)"
-                    class="mt-1 block w-full px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-xs"
+                    class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-xs"
                   />
                 </div>
                 <div>
@@ -129,7 +130,7 @@
                     min="0"
                     v-model.number="foodItem.carbs"
                     placeholder="Carb (g)"
-                    class="mt-1 block w-full px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-xs"
+                    class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-xs"
                   />
                 </div>
                 <div>
@@ -140,7 +141,7 @@
                     min="0"
                     v-model.number="foodItem.fats"
                     placeholder="Fat (g)"
-                    class="mt-1 block w-full px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-xs"
+                    class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-xs"
                   />
                 </div>
                 <div class="flex items-center justify-end">
@@ -160,17 +161,17 @@
           </div>
         </div>
 
-        <div class="flex justify-end space-x-4 mt-8">
+        <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4 mt-8">
           <button
             type="button"
             @click="close"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+            class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
           >
             Annulla
           </button>
           <button
             type="submit"
-            class="px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+            class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
           >
             {{ submitButtonText }}
           </button>

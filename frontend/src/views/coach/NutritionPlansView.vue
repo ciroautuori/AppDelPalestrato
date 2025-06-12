@@ -1,26 +1,27 @@
 <template>
-  <div class="p-6">
-    <h1 class="text-3xl font-bold mb-6 text-gray-800 dark:text-white">Piani Nutrizionali</h1>
-
-    <div class="mb-4 flex justify-end">
+  <div class="p-4 md:p-6 lg:p-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-4 md:mb-0">Piani Nutrizionali</h1>
       <button
         @click="openCreateModal"
-        class="px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+        class="w-full md:w-auto px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
       >
         Crea Nuovo Piano
       </button>
     </div>
 
-    <div v-if="isLoading" class="text-center text-gray-600 dark:text-gray-400">
-      Caricamento...
+    <div v-if="isLoading" class="flex justify-center items-center min-h-[200px]">
+      <div class="loading loading-spinner loading-lg text-primary"></div>
     </div>
 
     <div v-else>
-      <NutritionPlansTable
-        :plans="nutritionPlans"
-        @edit-plan="openEditModal"
-        @delete-plan="handleDeletePlan"
-      />
+      <div class="overflow-x-auto">
+        <NutritionPlansTable
+          :plans="nutritionPlans"
+          @edit-plan="openEditModal"
+          @delete-plan="handleDeletePlan"
+        />
+      </div>
     </div>
 
     <NutritionPlanFormModal
