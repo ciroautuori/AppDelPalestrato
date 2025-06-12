@@ -2,12 +2,12 @@
   <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-2xl font-bold">I Miei Atleti</h1>
-    </div>
+      </div>
 
     <!-- Loading State -->
     <div v-if="coachStore.athletesLoading" class="flex justify-center items-center py-8">
       <span class="loading loading-spinner loading-lg"></span>
-    </div>
+      </div>
 
     <!-- Error State -->
     <div v-else-if="coachStore.athletesError" class="alert alert-error">
@@ -15,7 +15,7 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
       <span>{{ coachStore.athletesError }}</span>
-    </div>
+      </div>
 
     <!-- Athletes List -->
     <div v-else-if="myAthletes.length > 0" class="space-y-4">
@@ -32,15 +32,15 @@
                 <span class="font-semibold">{{ athlete.name || athlete.email }}</span>
                 <p class="text-sm text-gray-500">{{ athlete.email }}</p>
               </div>
-            </div>
+        </div>
             <div class="flex gap-2">
               <button class="btn btn-sm btn-ghost" @click="viewAthleteDetails(athlete)">
                 <i class="fas fa-eye"></i>
-              </button>
+          </button>
               <button class="btn btn-sm btn-ghost" @click="viewAthletePlans(athlete)">
                 <i class="fas fa-dumbbell"></i>
-              </button>
-            </div>
+          </button>
+        </div>
           </a>
         </li>
       </ul>
