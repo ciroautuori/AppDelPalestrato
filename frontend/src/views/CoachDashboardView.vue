@@ -56,10 +56,10 @@ const athletes = ref([
 
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
-          <h2 class="card-title text-warning">Training Programs</h2>
+          <h2 class="card-title text-warning">Piani di Allenamento</h2>
           <p>Create and manage training programs</p>
           <div class="card-actions justify-end">
-            <button class="btn btn-warning">Manage Programs</button>
+            <button class="btn btn-warning">Gestisci Piani di Allenamento</button>
           </div>
         </div>
       </div>
