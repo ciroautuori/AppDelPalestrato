@@ -68,13 +68,12 @@ def create_workout_log(
     # Verify the plan assignment exists and is active
     assignment = db.query(PlanAssignment).filter(
         PlanAssignment.id == workout_log_in.plan_assignment_id,
-        PlanAssignment.athlete_id == current_user.id,
-        PlanAssignment.status.in_(["assigned", "in_progress"])
+        PlanAssignment.athlete_id == current_user.id
     ).first()
     if not assignment:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Active plan assignment not found"
+            detail="Plan assignment not found"
         )
 
     workout_log = WorkoutLog(
