@@ -1,5 +1,5 @@
 <template>
-  <dialog class="modal" :class="{ 'modal-open': show }" @close="closeModal">
+  <dialog ref="dialogRef" class="modal" :class="{ 'modal-open': show }" @close="closeModal">
     <div class="modal-box bg-gray-800 w-11/12 max-w-2xl">
       <form @submit.prevent="submitForm" novalidate>
         <button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @click="closeModal">✕</button>
@@ -102,6 +102,8 @@
 import { ref, watch, computed, onMounted } from 'vue';
 import { useExerciseStore } from '@/store/exercise';
 
+const dialogRef = ref(null);
+
 const props = defineProps({
   show: Boolean,
   planToEdit: {
@@ -132,11 +134,11 @@ const isEditing = computed(() => !!props.planToEdit);
 
 watch(() => props.show, (newVal) => {
   if (newVal) {
+    dialogRef.value?.showModal();
     formErrors.value = {}; // Reset errors
     if (!exerciseStore.exercises || exerciseStore.exercises.length === 0) {
       exerciseStore.fetchExercises().catch(err => {
         console.error("Failed to fetch exercises on modal open:", err);
-        // Error is handled by the store and displayed in the template
       });
     }
     if (isEditing.value && props.planToEdit) {
@@ -161,6 +163,8 @@ watch(() => props.show, (newVal) => {
       formData.value = JSON.parse(JSON.stringify(initialFormData));
       addExerciseDetail(); // Add one empty exercise row for new plans
     }
+  } else {
+    dialogRef.value?.close();
   }
 });
 
@@ -220,6 +224,7 @@ const submitForm = () => {
 
 const closeModal = () => {
   if (!props.isSubmitting) {
+    dialogRef.value?.close();
     emit('close');
   }
 };

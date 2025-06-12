@@ -11,7 +11,7 @@
           <h2 class="card-title text-2xl text-warning">Miei Atleti</h2>
           <p>Visualizza e gestisci gli atleti a te associati.</p>
           <div class="card-actions justify-end mt-4">
-            <button class="btn btn-warning btn-sm">Vai a Atleti</button>
+            <router-link to="/coach/my-athletes" class="btn btn-warning btn-sm">Vai a Atleti</router-link>
           </div>
         </div>
       </div>
@@ -22,7 +22,18 @@
           <h2 class="card-title text-2xl text-warning">Piani Creati</h2>
           <p>Crea, modifica ed assegna piani di allenamento.</p>
           <div class="card-actions justify-end mt-4">
-            <button class="btn btn-warning btn-sm">Vai a Piani</button>
+            <router-link to="/coach/my-plans" class="btn btn-warning btn-sm">Vai a Piani</router-link>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Gestione Esercizi -->
+      <div class="card bg-neutral text-neutral-content shadow-xl">
+        <div class="card-body items-center text-center">
+          <h2 class="card-title text-2xl text-warning">Catalogo Esercizi</h2>
+          <p>Crea, modifica e gestisci gli esercizi disponibili per i piani di allenamento.</p>
+          <div class="card-actions justify-end mt-4">
+            <router-link to="/coach/exercises" class="btn btn-warning btn-sm">Vai a Esercizi</router-link>
           </div>
         </div>
       </div>
