@@ -27,6 +27,10 @@ class User(Base):
     # Relationships for created content
     created_exercises = relationship("Exercise", back_populates="created_by")
     created_plans = relationship("Plan", back_populates="created_by")
+    created_nutrition_plans = relationship(
+        "NutritionPlan", back_populates="created_by")
+
+    # Plan assignments
     assigned_plans = relationship(
         "PlanAssignment",
         back_populates="athlete",
@@ -37,4 +41,17 @@ class User(Base):
         back_populates="assigned_by",
         foreign_keys="PlanAssignment.assigned_by_coach_id"
     )
+
+    # Nutrition plan assignments
+    assigned_nutrition_plans = relationship(
+        "NutritionPlanAssignment",
+        back_populates="athlete",
+        foreign_keys="NutritionPlanAssignment.athlete_id"
+    )
+    assigned_by_nutrition_plans = relationship(
+        "NutritionPlanAssignment",
+        back_populates="assigned_by",
+        foreign_keys="NutritionPlanAssignment.assigned_by_coach_id"
+    )
+
     workout_logs = relationship("WorkoutLog", back_populates="athlete")
