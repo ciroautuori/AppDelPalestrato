@@ -191,3 +191,25 @@ def delete_user(
     db.delete(user)
     db.commit()
     return user
+
+
+@router.get("/me/athletes", response_model=List[UserSchema])
+def read_coach_athletes(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> Any:
+    """
+    Get all athletes assigned to the current coach.
+    """
+    if current_user.role != UserRole.COACH:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only coaches can view their athletes"
+        )
+
+    athletes = db.query(User).filter(
+        User.coach_id == current_user.id,
+        User.role == UserRole.ATHLETE
+    ).all()
+
+    return athletes
