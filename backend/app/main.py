@@ -31,7 +31,7 @@ app.include_router(workout_logs.router,
                    prefix="/api/v1/workout-logs", tags=["workout-logs"])
 app.include_router(nutrition_plans.router,
                    prefix="/api/v1/nutrition-plans", tags=["nutrition-plans"])
-app.include_router(pr.router, prefix="/api/v1/prs", tags=["personal-records"])
+app.include_router(pr.router, prefix="/api/v1/pr", tags=["Personal Records"])
 
 
 @app.on_event("startup")

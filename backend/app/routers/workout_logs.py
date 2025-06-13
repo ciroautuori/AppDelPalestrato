@@ -8,9 +8,13 @@ from app.core.security import oauth2_scheme, verify_token
 from app.models.user import User, UserRole
 from app.models.workout_log import WorkoutLog
 from app.models.plan import PlanAssignment, PlanExerciseDetails # Added PlanExerciseDetails
-from app.schemas.workout_log import WorkoutLog as WorkoutLogSchema, WorkoutLogCreate, WorkoutLogUpdate, WorkoutLogWithPRStatus # Added WorkoutLogWithPRStatus
+from app.schemas.workout_log import WorkoutLog as WorkoutLogSchema, WorkoutLogCreate, WorkoutLogUpdate # WorkoutLogWithPRStatus will be imported from pr schemas
 from app.routers.users import get_current_active_user, check_admin_permission, check_coach_permission
-from app.crud import crud_pr # Added crud_pr
+from app.crud import crud_pr
+from app.schemas.pr import PersonalRecordCreate, PersonalRecordUpdate, WorkoutLogWithPRStatus # Import PR schemas
+# User model is already imported via `from app.models.user import User, UserRole`
+# Depends is already imported from fastapi
+# Session is already imported from sqlalchemy.orm
 
 router = APIRouter()
 
@@ -77,51 +81,94 @@ def create_workout_log(
             detail="Plan assignment not found"
         )
 
-    workout_log = WorkoutLog(
+    created_workout_log_model = WorkoutLog(
         **workout_log_in.dict(),
         athlete_id=current_user.id
+        # date_performed is part of workout_log_in or defaults in model
     )
-    db.add(workout_log)
+    db.add(created_workout_log_model)
     db.commit()
-    db.refresh(workout_log)
+    db.refresh(created_workout_log_model)
 
-    any_new_pr_achieved = False
+    new_pr_achieved = False
+    athlete_id = current_user.id
 
     # Fetch the PlanExerciseDetails to get the exercise_id
-    plan_exercise_detail = db.query(PlanExerciseDetails).filter(PlanExerciseDetails.id == workout_log.plan_exercise_details_id).first()
+    # This part assumes that workout_log_in has plan_exercise_details_id
+    # and that this ID corresponds to a single exercise for the entire log.
+    # If a workout log can have multiple exercises, this logic needs adjustment.
+    # For now, proceeding with the assumption of one exercise per log based on current structure.
+    plan_exercise_detail = db.query(PlanExerciseDetails).filter(PlanExerciseDetails.id == created_workout_log_model.plan_exercise_details_id).first()
 
     if not plan_exercise_detail:
-        # This case should ideally not happen if data integrity is maintained
-        # but handle it defensively.
-        return WorkoutLogWithPRStatus.from_orm(workout_log, {"new_pr_achieved": False})
+        # If no plan exercise detail, we can't determine the exercise_id for PRs.
+        # Return the created log without PR processing.
+        # This scenario should be handled based on application requirements.
+        # For now, we'll return with new_pr_achieved as False.
+        return {"workout_log": created_workout_log_model, "new_pr_achieved": new_pr_achieved}
 
-    exercise_id = plan_exercise_detail.exercise_id
+    exercise_id_for_log = plan_exercise_detail.exercise_id
 
-    # Iterate through each set performed in the workout log
-    num_sets = workout_log.sets_performed
-    if len(workout_log.reps_performed_per_set) == num_sets and len(workout_log.weight_used_per_set) == num_sets:
+    # The subtask implies iterating over "workout_log_in.sets".
+    # The current WorkoutLogCreate schema and WorkoutLog model store sets as:
+    # sets_performed: int
+    # reps_performed_per_set: ARRAY(Integer)
+    # weight_used_per_set: ARRAY(String)
+    # This structure means we iterate based on sets_performed and access arrays by index.
+
+    num_sets = created_workout_log_model.sets_performed
+    if len(created_workout_log_model.reps_performed_per_set) == num_sets and \
+       len(created_workout_log_model.weight_used_per_set) == num_sets:
         for i in range(num_sets):
-            reps = workout_log.reps_performed_per_set[i]
+            reps = created_workout_log_model.reps_performed_per_set[i]
             try:
-                weight = float(workout_log.weight_used_per_set[i]) # Ensure weight is float
+                # Ensure weight is correctly parsed as float
+                weight_str = created_workout_log_model.weight_used_per_set[i]
+                weight = float(weight_str)
             except ValueError:
-                # Handle cases where weight might not be a valid float, skip PR for this set
+                # If weight is not a valid float, skip PR consideration for this set
                 continue
 
-            if reps > 0 and weight > 0: # Only consider valid sets for PRs
-                _, pr_achieved_for_set = crud_pr.find_or_create_pr_for_log(
-                    db=db,
-                    athlete_id=workout_log.athlete_id,
-                    exercise_id=exercise_id,
-                    reps_achieved=reps,
-                    weight_lifted=weight,
-                    date_achieved=workout_log.date_performed.date(), # Extract date part
-                    workout_log_id=workout_log.id
-                )
-                if pr_achieved_for_set:
-                    any_new_pr_achieved = True
+            if reps <= 0 or weight <= 0: # PRs are typically for positive reps and weight
+                continue
 
-    return WorkoutLogWithPRStatus.from_orm(workout_log, {"new_pr_achieved": any_new_pr_achieved})
+            existing_pr = crud_pr.get_pr_by_details(
+                db=db,
+                athlete_id=athlete_id,
+                exercise_id=exercise_id_for_log, # Use the single exercise ID for the log
+                reps=reps
+            )
+
+            log_date = created_workout_log_model.date_performed.date() # Use date part of date_performed
+
+            if existing_pr:
+                if weight > existing_pr.weight:
+                    pr_update_data = PersonalRecordUpdate(weight=weight, date_achieved=log_date)
+                    # workout_log_id is not updated here as existing_pr might be from a different log
+                    # or we might decide to link it to the current log.
+                    # The requirement for update_pr doesn't include workout_log_id.
+                    # If we want to update the workout_log_id of the PR, schema and CRUD for PR update would need adjustment.
+                    crud_pr.update_pr(db=db, db_obj=existing_pr, obj_in=pr_update_data)
+                    new_pr_achieved = True
+            else:
+                pr_create_data = PersonalRecordCreate(
+                    exercise_id=exercise_id_for_log,
+                    reps=reps,
+                    weight=weight,
+                    date_achieved=log_date
+                )
+                crud_pr.create_pr(
+                    db=db,
+                    obj_in=pr_create_data,
+                    athlete_id=athlete_id,
+                    workout_log_id=created_workout_log_model.id # Link new PR to this workout log
+                )
+                new_pr_achieved = True
+
+    # The return type annotation for the endpoint is WorkoutLogWithPRStatus
+    # The subtask asks to return a dict: `return {"workout_log": created_workout_log, "new_pr_achieved": new_pr_achieved}`
+    # FastAPI will automatically convert this dict to WorkoutLogWithPRStatus if the keys match.
+    return {"workout_log": created_workout_log_model, "new_pr_achieved": new_pr_achieved}
 
 
 @router.put("/{workout_log_id}", response_model=WorkoutLogSchema)

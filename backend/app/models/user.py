@@ -56,4 +56,4 @@ class User(Base):
     )
 
     workout_logs = relationship("WorkoutLog", back_populates="athlete")
-    personal_records = relationship("PersonalRecord", back_populates="athlete", order_by=desc(PersonalRecord.date_achieved))
+    personal_records = relationship("PersonalRecord", back_populates="athlete", cascade="all, delete-orphan")

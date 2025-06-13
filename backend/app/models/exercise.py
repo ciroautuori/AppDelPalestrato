@@ -20,4 +20,4 @@ class Exercise(Base):
     plan_exercise_details = relationship(
         "PlanExerciseDetails", back_populates="exercise")
     personal_records = relationship(
-        "PersonalRecord", back_populates="exercise")
+        "PersonalRecord", back_populates="exercise", cascade="all, delete-orphan")

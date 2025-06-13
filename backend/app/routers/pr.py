@@ -11,21 +11,20 @@ from app.crud import crud_pr
 router = APIRouter()
 
 
-@router.get("/athlete/me/personal-records", response_model=List[PersonalRecordRead])
-def read_athlete_personal_records(
-    *,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-) -> Any:
+@router.get("/athlete/me", response_model=List[PersonalRecordRead])
+def read_personal_records_for_athlete(
+    db: Session = Depends(get_db), # Removed * for consistency with problem statement, though * is fine
+    current_user: User = Depends(get_current_active_user),
+) -> List[PersonalRecordRead]: # Corrected return type annotation
     """
     Retrieve all personal records for the currently authenticated athlete.
     """
-    if current_user.role != UserRole.ATHLETE:
+    # Ensure the current user is an athlete
+    if current_user.role != UserRole.ATHLETE: # Comparing with Enum member
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized. Athlete role required."
+            detail="Not authorized to access this resource. Only athletes can view their PRs.", # Minor detail message update
         )
 
-    personal_records = crud_pr.get_prs_by_athlete(
-        db=db, athlete_id=current_user.id)
-    return personal_records
+    prs = crud_pr.get_prs_by_athlete(db=db, athlete_id=current_user.id)
+    return prs

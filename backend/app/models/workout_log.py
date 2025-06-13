@@ -32,4 +32,4 @@ class WorkoutLog(Base):
         "PlanExerciseDetails", back_populates="workout_logs")
     athlete = relationship("User", back_populates="workout_logs")
     personal_records = relationship(
-        "PersonalRecord", back_populates="workout_log")
+        "PersonalRecord", back_populates="workout_log", cascade="all, delete-orphan")

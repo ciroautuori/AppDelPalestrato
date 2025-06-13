@@ -9,4 +9,4 @@ from app.models.workout_log import WorkoutLog
 from app.models.nutrition_plan import NutritionPlan, NutritionPlanAssignment
 
 # Import the new PersonalRecord model
-from app.models.pr import PersonalRecord
+from app.models.pr import PersonalRecord  # noqa
