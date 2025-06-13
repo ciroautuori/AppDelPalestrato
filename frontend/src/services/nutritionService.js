@@ -1,3 +1,5 @@
+import api from './api';
+
 // Mock database
 let mockPlans = [
   {
@@ -134,4 +136,21 @@ export const deleteNutritionPlan = (planId) => {
       }
     }, 500);
   });
+};
+
+export const nutritionService = {
+  // Get all nutrition plans (returns different results based on user role)
+  getNutritionPlans() {
+    return api.get('/nutrition-plans/');
+  },
+
+  // Assign a nutrition plan to an athlete
+  assignNutritionPlan(assignmentData) {
+    return api.post('/nutrition-plans/assignments', assignmentData);
+  },
+
+  // Get a specific nutrition plan by ID
+  getNutritionPlanById(planId) {
+    return api.get(`/nutrition-plans/${planId}`);
+  }
 };
