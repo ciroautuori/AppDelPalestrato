@@ -116,12 +116,20 @@
       <button @click="$emit('close-modal')">close</button>
     </form>
   </dialog>
+
+  <!-- PR Celebration Modal -->
+  <PRCelebrationModal
+    v-model="showPRCelebration"
+    :record="newPR"
+  />
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useAthleteStore } from '@/store/athlete';
 import { useToastStore } from '@/store/toast';
+import { usePRStore } from '@/store/pr';
+import PRCelebrationModal from '@/components/modals/PRCelebrationModal.vue';
 
 const props = defineProps({
   showModal: {
@@ -138,10 +146,13 @@ const emit = defineEmits(['close-modal']);
 
 const athleteStore = useAthleteStore();
 const toastStore = useToastStore();
+const prStore = usePRStore();
 const isLoading = ref(false);
 const error = ref(null);
 const isSubmitting = ref(false);
 const generalNotes = ref('');
+const showPRCelebration = ref(false);
+const newPR = ref(null);
 
 // Inizializza i log degli esercizi
 const exerciseLogs = ref([]);
@@ -186,7 +197,17 @@ const handleSubmit = async () => {
       exercise_logs: exerciseLogs.value
     };
 
-    await athleteStore.logWorkout(payload);
+    const response = await athleteStore.logWorkout(payload);
+    
+    // Check if a new PR was achieved
+    if (response.new_pr_achieved) {
+      // Get the latest PR from the store
+      await prStore.fetchPersonalRecords();
+      const latestPR = prStore.getPersonalRecords[0]; // Assuming the latest PR is the first one
+      newPR.value = latestPR;
+      showPRCelebration.value = true;
+    }
+
     toastStore.showToast('Allenamento registrato con successo!', 'success');
     emit('close-modal');
   } catch (err) {

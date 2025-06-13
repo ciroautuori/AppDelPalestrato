@@ -11,7 +11,7 @@ from app.crud import crud_pr
 router = APIRouter()
 
 
-@router.get("/athlete/me/personal-records", response_model=List[PersonalRecordRead])
+@router.get("/athlete/me", response_model=List[PersonalRecordRead])
 def read_athlete_personal_records(
     *,
     db: Session = Depends(get_db),

@@ -51,9 +51,10 @@ export const useAthleteStore = defineStore('athlete', {
       this.isLoggingWorkout = true;
       this.logWorkoutError = null;
       try {
-        await athleteService.logWorkout(workoutData);
+        const response = await athleteService.logWorkout(workoutData);
         // Aggiorna lo storico dopo il salvataggio
         await this.fetchWorkoutHistory();
+        return response; // Return the response to handle PR status
       } catch (err) {
         this.logWorkoutError = err.response?.data?.detail || 'Errore durante il salvataggio dell\'allenamento';
         throw err;

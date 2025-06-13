@@ -10,6 +10,7 @@ import ExerciseManagementView from '@/views/coach/ExerciseManagementView.vue';
 import NutritionPlansView from '@/views/coach/NutritionPlansView.vue';
 import AthleteDashboardView from '@/views/AthleteDashboardView.vue';
 import AccessDeniedView from '@/views/AccessDeniedView.vue';
+import PersonalRecordsView from '@/views/athlete/PersonalRecordsView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -156,6 +157,12 @@ const router = createRouter({
       name: 'AthleteNutritionPlanDetail',
       component: () => import('@/views/athlete/NutritionPlanDetail.vue'),
       meta: { requiresAuth: true, roles: ['athlete'] } // ensure 'roles' is used
+    },
+    {
+      path: '/athlete/personal-records',
+      name: 'athlete-personal-records',
+      component: PersonalRecordsView,
+      meta: { requiresAuth: true, roles: ['athlete'], layout: 'AppLayout' }
     },
     {
       path: '/:pathMatch(.*)*',

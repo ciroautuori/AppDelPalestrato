@@ -94,6 +94,74 @@ export const useUserManagementStore = defineStore('userManagement', {
       } finally {
         this.loading = false;
       }
+    },
+
+    async getUserProfile(userId) {
+      this.loading = true;
+      this.errorMessage = null;
+      try {
+        const profile = await userService.getUserProfile(userId);
+        return profile;
+      } catch (error) {
+        this.errorMessage = error.response?.data?.detail || 'Errore nel caricamento del profilo';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async getUserFollowers(userId) {
+      this.loading = true;
+      this.errorMessage = null;
+      try {
+        const followers = await userService.getUserFollowers(userId);
+        return followers;
+      } catch (error) {
+        this.errorMessage = error.response?.data?.detail || 'Errore nel caricamento dei follower';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async getUserFollowing(userId) {
+      this.loading = true;
+      this.errorMessage = null;
+      try {
+        const following = await userService.getUserFollowing(userId);
+        return following;
+      } catch (error) {
+        this.errorMessage = error.response?.data?.detail || 'Errore nel caricamento dei following';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async followUser(userId) {
+      this.loading = true;
+      this.errorMessage = null;
+      try {
+        await userService.followUser(userId);
+      } catch (error) {
+        this.errorMessage = error.response?.data?.detail || 'Errore durante l\'operazione di follow';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async unfollowUser(userId) {
+      this.loading = true;
+      this.errorMessage = null;
+      try {
+        await userService.unfollowUser(userId);
+      } catch (error) {
+        this.errorMessage = error.response?.data?.detail || 'Errore durante l\'operazione di unfollow';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
     }
   }
 }); 
