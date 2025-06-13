@@ -38,3 +38,8 @@ class WorkoutLogInDB(WorkoutLogBase):
 
 class WorkoutLog(WorkoutLogInDB):
     pass
+
+
+# Schema for returning workout log along with PR status
+class WorkoutLogWithPRStatus(WorkoutLog):
+    new_pr_achieved: bool
