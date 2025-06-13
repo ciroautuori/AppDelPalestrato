@@ -14,17 +14,17 @@ export const athleteService = {
   },
 
   async getAssignedWorkoutPlans() {
-    const response = await api.get('/api/v1/plans/assignments/me/workout');
+    const response = await api.get('/plans/assignments');
     return response.data;
   },
 
   async getAssignedNutritionPlans() {
-    const response = await api.get('/api/v1/plans/assignments/me/nutrition');
+    const response = await api.get('/plans/assignments');
     return response.data;
   },
 
   async getPersonalRecords() {
-    const response = await api.get('/api/v1/athletes/me/personal-records');
+    const response = await api.get('/prs/athlete/me/personal-records');
     return response.data;
   }
 }; 
