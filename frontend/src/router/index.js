@@ -8,27 +8,25 @@ import MyAthletesView from '@/views/coach/MyAthletesView.vue'; // Added import
 import MyPlansView from '@/views/coach/MyPlansView.vue';     // Added import
 import ExerciseManagementView from '@/views/coach/ExerciseManagementView.vue';
 import NutritionPlansView from '@/views/coach/NutritionPlansView.vue';
-import AthleteDashboardView from '@/views/AthleteDashboardView.vue';
+// import AthleteDashboardView from '@/views/AthleteDashboardView.vue'; // Old dashboard
+import DashboardView from '../views/athlete/DashboardView.vue'; // New Athlete Dashboard
+import ProfileView from '../views/athlete/ProfileView.vue';   // New Athlete Profile
 import AccessDeniedView from '@/views/AccessDeniedView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // Default redirect based on role
     {
       path: '/',
-      redirect: (to) => {
+      redirect: () => {
         const authStore = useAuthStore();
         if (!authStore.isUserAuthenticated) return '/login';
-        
         switch (authStore.userRole) {
-          case 'admin':
-            return '/admin/dashboard';
-          case 'coach':
-            return '/coach/dashboard';
-          case 'athlete':
-            return '/athlete/dashboard';
-          default:
-            return '/login';
+          case 'admin': return '/admin/dashboard';
+          case 'coach': return '/coach/dashboard';
+          case 'athlete': return '/athlete/dashboard';
+          default: return '/login';
         }
       },
     },
@@ -38,100 +36,97 @@ const router = createRouter({
       component: LoginView,
       meta: { layout: 'AuthLayout' }
     },
+    // Admin Routes
     {
-      path: '/admin/dashboard',
-      name: 'admin-dashboard',
-      component: AdminDashboardView,
-      meta: { requiresAuth: true, roles: ['admin'], layout: 'AppLayout' } // Updated meta
+      path: '/admin',
+      // component: AppLayout, // Assuming AppLayout is your default layout for authenticated users
+      meta: { requiresAuth: true, roles: ['admin'] },
+      children: [
+        { path: 'dashboard', name: 'admin-dashboard', component: AdminDashboardView, meta: { layout: 'AppLayout' } },
+        { path: 'users', name: 'admin-users', component: UserManagementView, meta: { layout: 'AppLayout' } },
+        { path: '', redirect: 'dashboard' }
+      ]
     },
+    // Coach Routes
     {
-      path: '/admin/users', // New route for user management
-      name: 'admin-users',
-      component: UserManagementView,
-      meta: { requiresAuth: true, roles: ['admin'], layout: 'AppLayout' }
+      path: '/coach',
+      // component: AppLayout,
+      meta: { requiresAuth: true, roles: ['coach'] },
+      children: [
+        { path: 'dashboard', name: 'coach-dashboard', component: CoachDashboardView, meta: { layout: 'AppLayout' } }, // Corrected name
+        { path: 'my-athletes', name: 'coach-my-athletes', component: MyAthletesView, meta: { layout: 'AppLayout' } }, // Corrected name
+        { path: 'my-plans', name: 'coach-my-plans', component: MyPlansView, meta: { layout: 'AppLayout' } }, // Corrected name
+        { path: 'nutrition-plans', name: 'coach-nutrition-plans', component: NutritionPlansView, meta: { layout: 'AppLayout' } }, // Corrected name
+        { path: 'exercises', name: 'coach-exercises', component: ExerciseManagementView, meta: { layout: 'AppLayout' } }, // Corrected name
+        { path: 'workout-plans', name: 'coach-workout-plan-management', component: () => import('@/views/coach/WorkoutPlanManagement.vue'), meta: { layout: 'AppLayout' } }, // Corrected name
+        { path: 'nutrition-plan-management', name: 'coach-nutrition-plan-management', component: () => import('@/views/coach/NutritionPlanManagement.vue'), meta: { layout: 'AppLayout' } }, // Corrected name
+        { path: 'nutrition', name: 'coach-nutrition', component: () => import('@/views/coach/NutritionManagement.vue'), meta: { layout: 'AppLayout' } },
+        { path: '', redirect: 'dashboard' }
+      ]
     },
+    // Athlete Routes
     {
-      path: '/coach/dashboard',
-      name: 'CoachDashboard', // Changed name for consistency
-      component: CoachDashboardView,
-      meta: { requiresAuth: true, roles: ['coach'], layout: 'AppLayout' } // Updated meta
-    },
-    {
-      path: '/coach/my-athletes',
-      name: 'CoachMyAthletes',
-      component: MyAthletesView,
-      meta: { requiresAuth: true, roles: ['coach'], layout: 'AppLayout' }
-    },
-    {
-      path: '/coach/my-plans',
-      name: 'CoachMyPlans',
-      component: MyPlansView,
-      meta: { requiresAuth: true, roles: ['coach'], layout: 'AppLayout' }
-    },
-    {
-      path: '/coach/nutrition-plans',
-      name: 'CoachNutritionPlans',
-      component: NutritionPlansView, // The component to be created
-      meta: { requiresAuth: true, roles: ['coach'], layout: 'AppLayout' }
-    },
-    {
-      path: '/coach/exercises',
-      name: 'CoachExercises',
-      component: ExerciseManagementView,
-      meta: { requiresAuth: true, roles: ['coach'], layout: 'AppLayout' }
-    },
-    {
-      path: '/coach/workout-plans',
-      name: 'CoachWorkoutPlanManagement',
-      component: () => import('@/views/coach/WorkoutPlanManagement.vue'),
-      meta: { requiresAuth: true, roles: ['coach'], layout: 'AppLayout' }
-    },
-    {
-      path: '/coach/nutrition-plan-management',
-      name: 'CoachNutritionPlanManagement',
-      component: () => import('@/views/coach/NutritionPlanManagement.vue'),
-      meta: { requiresAuth: true, roles: ['coach'], layout: 'AppLayout' }
-    },
-    {
-      path: '/athlete/dashboard',
-      name: 'athlete-dashboard',
-      component: AthleteDashboardView,
-      // Assuming athlete routes also need auth and role protection if they become more specific
-      meta: { requiresAuth: true, roles: ['athlete'], layout: 'AppLayout' }
-    },
-    {
-      path: '/athlete/history',
-      name: 'athlete-history',
-      component: () => import('@/views/athlete/HistoryView.vue'),
-      meta: {
-        requiresAuth: true,
-        roles: ['athlete'], // ensure 'roles' is used for consistency with the guard
-        layout: 'AppLayout'
-      }
-    },
-    {
-      path: '/athlete/my-workout-plans',
-      name: 'MyWorkoutPlans',
-      component: () => import('@/views/athlete/MyWorkoutPlans.vue'),
-      meta: { requiresAuth: true, roles: ['athlete'], layout: 'AppLayout' }
-    },
-    {
-      path: '/athlete/my-nutrition-plans',
-      name: 'MyNutritionPlans',
-      component: () => import('@/views/athlete/MyNutritionPlans.vue'),
-      meta: { requiresAuth: true, roles: ['athlete'], layout: 'AppLayout' }
-    },
-    {
-      path: '/athlete/workout-plan/:id',
-      name: 'WorkoutPlanDetail',
-      component: () => import('@/views/athlete/WorkoutPlanDetail.vue'),
-      meta: { requiresAuth: true, roles: ['athlete'], layout: 'AppLayout' }
-    },
-    {
-      path: '/athlete/nutrition-plan/:id',
-      name: 'NutritionPlanDetail',
-      component: () => import('@/views/athlete/NutritionPlanDetail.vue'),
-      meta: { requiresAuth: true, roles: ['athlete'], layout: 'AppLayout' }
+      path: '/athlete',
+      // component: AppLayout, // Assuming AppLayout handles the navigation for athletes
+      meta: { requiresAuth: true, roles: ['athlete'] },
+      children: [
+        {
+          path: 'dashboard',
+          name: 'athlete-dashboard',
+          component: DashboardView, // New Dashboard view
+          meta: { layout: 'AppLayout' }
+        },
+        {
+          path: 'profile',
+          name: 'athlete-profile',
+          component: ProfileView, // New Profile view
+          meta: { layout: 'AppLayout' }
+        },
+        {
+          path: 'history',
+          name: 'athlete-history',
+          component: () => import('@/views/athlete/HistoryView.vue'),
+          meta: { layout: 'AppLayout' }
+        },
+        // {
+        //   path: 'my-workout-plans', // Old route, to be removed or handled
+        //   name: 'MyWorkoutPlans',
+        //   component: () => import('@/views/athlete/MyWorkoutPlans.vue'),
+        //   meta: { layout: 'AppLayout' }
+        // },
+        // {
+        //   path: 'my-nutrition-plans', // Old route, to be removed or handled
+        //   name: 'MyNutritionPlans',
+        //   component: () => import('@/views/athlete/MyNutritionPlans.vue'),
+        //   meta: { layout: 'AppLayout' }
+        // },
+        // {
+        //   path: 'nutrition-plans', // Old route, to be removed or handled
+        //   name: 'AthleteNutritionPlans',
+        //   component: () => import('@/views/athlete/NutritionPlans.vue'),
+        //   meta: { layout: 'AppLayout' }
+        // },
+        // Specific plan details might still be relevant if linked from somewhere
+        {
+          path: 'workout-plan/:id',
+          name: 'WorkoutPlanDetail',
+          component: () => import('@/views/athlete/WorkoutPlanDetail.vue'),
+          meta: { layout: 'AppLayout' }
+        },
+        {
+          path: 'nutrition-plan/:id',
+          name: 'NutritionPlanDetail', // Corrected name for consistency
+          component: () => import('@/views/athlete/NutritionPlanDetail.vue'),
+          meta: { layout: 'AppLayout' }
+        },
+        // {
+        //   path: 'nutrition-plans/:id', // Old, potentially duplicate if NutritionPlanDetail covers it
+        //   name: 'AthleteNutritionPlanDetail',
+        //   component: () => import('@/views/athlete/NutritionPlanDetail.vue'),
+        //   meta: { layout: 'AppLayout' }
+        // },
+        { path: '', redirect: 'dashboard' } // Default for /athlete
+      ]
     },
     {
       path: '/access-denied',
@@ -140,51 +135,41 @@ const router = createRouter({
       meta: { layout: 'AuthLayout' }
     },
     {
-      path: '/coach/nutrition',
-      name: 'CoachNutrition',
-      component: () => import('@/views/coach/NutritionManagement.vue'),
-      meta: { requiresAuth: true, roles: ['coach'] } // ensure 'roles' is used
-    },
-    {
-      path: '/athlete/nutrition-plans', // This existing route might conflict or be for a different purpose
-      name: 'AthleteNutritionPlans',
-      component: () => import('@/views/athlete/NutritionPlans.vue'),
-      meta: { requiresAuth: true, roles: ['athlete'] } // ensure 'roles' is used
-    },
-    {
-      path: '/athlete/nutrition-plans/:id', // This existing route might conflict or be for a different purpose
-      name: 'AthleteNutritionPlanDetail',
-      component: () => import('@/views/athlete/NutritionPlanDetail.vue'),
-      meta: { requiresAuth: true, roles: ['athlete'] } // ensure 'roles' is used
-    },
-    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('@/views/NotFoundView.vue'),
       meta: { requiresAuth: false },
-    },
-  ],
+    }
+  ]
 });
 
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
-  // Ensure store is initialized, especially on first load/refresh
   if (!authStore.isInitialized) {
-    await authStore.initializeStore(); // Assuming initializeStore checks for token and fetches user
+    await authStore.initializeStore();
   }
 
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
   const userIsAuthenticated = authStore.isUserAuthenticated;
   const userRole = authStore.userRole;
-
-  const allowedRoles = to.meta.roles; // This is an array
+  const allowedRoles = to.meta.roles;
 
   if (requiresAuth && !userIsAuthenticated) {
     next({ name: 'login', query: { redirect: to.fullPath } });
   } else if (requiresAuth && allowedRoles && !allowedRoles.includes(userRole)) {
-    // If 'allowedRoles' is an array and 'userRole' is a string, this check is correct.
     next({ name: 'access-denied' });
   } else {
+    // Ensure AppLayout is applied if not specified at the child level but at parent
+    if (to.matched.some(record => record.meta.requiresAuth) && !to.meta.layout) {
+      const parentLayout = to.matched.find(record => record.meta.layout)?.meta.layout;
+      if (parentLayout) {
+        to.meta.layout = parentLayout;
+      } else {
+        // Default to AppLayout if authenticated route has no layout specified
+        // and no parent layout is found (though this case should be rare with nested routes)
+        to.meta.layout = 'AppLayout';
+      }
+    }
     next();
   }
 });

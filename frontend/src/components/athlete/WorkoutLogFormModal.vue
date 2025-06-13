@@ -116,10 +116,12 @@
       <button @click="$emit('close-modal')">close</button>
     </form>
   </dialog>
+  <PRCelebrationModal :show="showPRModal" :new-records="newPRsData" @close="showPRModal = false" />
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
+import PRCelebrationModal from '@/components/modals/PRCelebrationModal.vue';
 import { useAthleteStore } from '@/store/athlete';
 import { useToastStore } from '@/store/toast';
 
@@ -142,6 +144,9 @@ const isLoading = ref(false);
 const error = ref(null);
 const isSubmitting = ref(false);
 const generalNotes = ref('');
+
+const showPRModal = ref(false);
+const newPRsData = ref([]);
 
 // Inizializza i log degli esercizi
 const exerciseLogs = ref([]);
@@ -186,9 +191,18 @@ const handleSubmit = async () => {
       exercise_logs: exerciseLogs.value
     };
 
-    await athleteStore.logWorkout(payload);
+    const response = await athleteStore.logWorkout(payload); // Assume logWorkout returns the API response
     toastStore.showToast('Allenamento registrato con successo!', 'success');
-    emit('close-modal');
+
+    if (response && response.data && response.data.new_pr_achieved) {
+      newPRsData.value = response.data.new_prs || [];
+      // Chiudi il form modale prima di mostrare il modale PR
+      emit('close-modal');
+      showPRModal.value = true;
+    } else {
+      // Chiudi normalmente se non ci sono PR
+      emit('close-modal');
+    }
   } catch (err) {
     error.value = err.response?.data?.detail || 'Errore durante il salvataggio dell\'allenamento';
     toastStore.showToast(error.value, 'error');

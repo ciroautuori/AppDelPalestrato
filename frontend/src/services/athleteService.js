@@ -11,5 +11,20 @@ export const athleteService = {
   async getWorkoutLogDetails(logId) {
     const response = await api.get(`/workout-logs/${logId}`);
     return response.data;
+  },
+
+  async getAssignedWorkoutPlans() {
+    const response = await api.get('/api/v1/plans/assignments/me/workout');
+    return response.data;
+  },
+
+  async getAssignedNutritionPlans() {
+    const response = await api.get('/api/v1/plans/assignments/me/nutrition');
+    return response.data;
+  },
+
+  async getPersonalRecords() {
+    const response = await api.get('/api/v1/athletes/me/personal-records');
+    return response.data;
   }
 }; 
