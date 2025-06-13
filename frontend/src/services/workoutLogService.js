@@ -7,7 +7,7 @@ import api from './api';
  * @returns {Promise<object>} A promise that resolves to the API response.
  */
 export const getAthleteLogs = (athleteId, params) => {
-  return api.get('/api/v1/workout-logs', {
+  return api.get('/workout-logs', {
     params: {
       athlete_id: athleteId,
       ...params,
@@ -21,7 +21,7 @@ export const getAthleteLogs = (athleteId, params) => {
  * @returns {Promise<object>} A promise that resolves to the API response.
  */
 export const createWorkoutLog = (logData) => {
-  return api.post('/api/v1/workout-logs/', logData);
+  return api.post('/workout-logs/', logData);
 };
 
 // Optionally, export as a default object if preferred by project structure

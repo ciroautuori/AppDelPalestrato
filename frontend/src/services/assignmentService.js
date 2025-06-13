@@ -6,5 +6,5 @@ import api from './api';
  * @returns {Promise<object>} A promise that resolves to the API response.
  */
 export const assignPlan = (assignmentData) => {
-  return api.post('/api/v1/plans/assignments', assignmentData);
+  return api.post('/plans/assignments', assignmentData);
 };

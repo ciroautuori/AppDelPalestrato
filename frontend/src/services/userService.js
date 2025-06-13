@@ -27,7 +27,7 @@ export const userService = {
   },
 
   async getCoachAthletes(coachId, params) {
-    const response = await api.get('/api/v1/users', {
+    const response = await api.get('/users', {
       params: {
         coach_id: coachId,
         role: 'athlete',
