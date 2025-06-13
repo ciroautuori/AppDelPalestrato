@@ -19,3 +19,5 @@ class Exercise(Base):
     created_by = relationship("User", back_populates="created_exercises")
     plan_exercise_details = relationship(
         "PlanExerciseDetails", back_populates="exercise")
+    personal_records = relationship(
+        "PersonalRecord", back_populates="exercise")

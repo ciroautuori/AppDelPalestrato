@@ -40,6 +40,14 @@ class WorkoutLog(WorkoutLogInDB):
     pass
 
 
+class WorkoutLogRead(WorkoutLogInDB):
+    """
+    Schema for reading workout logs with all necessary fields.
+    This is used for API responses where we need to return workout log data.
+    """
+    pass
+
+
 # Schema for returning workout log along with PR status
 class WorkoutLogWithPRStatus(WorkoutLog):
     new_pr_achieved: bool

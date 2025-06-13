@@ -3,18 +3,19 @@ from sqlalchemy.orm import Session
 from typing import List, Any
 
 from app.core.database import get_db
-from app.core.security import get_current_active_user # Assuming this is your dependency for current user
-from app.models.user import User, UserRole # Assuming UserRole enum is here
+from app.routers.users import get_current_active_user
+from app.models.user import User, UserRole  # Assuming UserRole enum is here
 from app.schemas.pr import PersonalRecordRead
 from app.crud import crud_pr
 
 router = APIRouter()
 
+
 @router.get("/athlete/me/personal-records", response_model=List[PersonalRecordRead])
 def read_athlete_personal_records(
     *,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user) # Your actual dependency for getting the user
+    current_user: User = Depends(get_current_active_user)
 ) -> Any:
     """
     Retrieve all personal records for the currently authenticated athlete.
@@ -25,5 +26,6 @@ def read_athlete_personal_records(
             detail="Not authorized. Athlete role required."
         )
 
-    personal_records = crud_pr.get_prs_by_athlete(db=db, athlete_id=current_user.id)
+    personal_records = crud_pr.get_prs_by_athlete(
+        db=db, athlete_id=current_user.id)
     return personal_records

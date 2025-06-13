@@ -31,3 +31,5 @@ class WorkoutLog(Base):
     plan_exercise_details = relationship(
         "PlanExerciseDetails", back_populates="workout_logs")
     athlete = relationship("User", back_populates="workout_logs")
+    personal_records = relationship(
+        "PersonalRecord", back_populates="workout_log")
