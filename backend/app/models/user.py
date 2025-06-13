@@ -1,8 +1,9 @@
-from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, Enum
+from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, Enum, desc
 from sqlalchemy.orm import relationship
 import enum
 
 from app.core.database import Base
+from app.models.pr import PersonalRecord
 
 
 class UserRole(str, enum.Enum):
@@ -55,3 +56,4 @@ class User(Base):
     )
 
     workout_logs = relationship("WorkoutLog", back_populates="athlete")
+    personal_records = relationship("PersonalRecord", back_populates="athlete", order_by=desc(PersonalRecord.date_achieved))

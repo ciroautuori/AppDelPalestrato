@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.init_db import init_db
-from app.routers import auth, users, exercises, plans, workout_logs, nutrition_plans
+from app.routers import auth, users, exercises, plans, workout_logs, nutrition_plans, pr
 
 app = FastAPI(
     title="AppDelPalestrato",
@@ -31,6 +31,7 @@ app.include_router(workout_logs.router,
                    prefix="/api/v1/workout-logs", tags=["workout-logs"])
 app.include_router(nutrition_plans.router,
                    prefix="/api/v1/nutrition-plans", tags=["nutrition-plans"])
+app.include_router(pr.router, prefix="/api/v1/prs", tags=["personal-records"])
 
 
 @app.on_event("startup")
