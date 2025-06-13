@@ -17,9 +17,9 @@
       </div>
     </div>
     <div v-else class="text-center text-gray-500">
-      Piano nutrizionale non trovato.
+      Piano di allenamento non trovato.
     </div>
-     <router-link :to="{ name: 'MyNutritionPlans' }" class="btn btn-link mt-4">Torna ai miei piani</router-link>
+    <router-link :to="{ name: 'MyWorkoutPlans' }" class="btn btn-link mt-4">Torna ai miei piani</router-link>
   </div>
 </template>
 
@@ -29,7 +29,7 @@ import { useRoute } from 'vue-router';
 import { useAthleteStore } from '@/stores/athlete'; // Or a dedicated service/store for fetching single plan details
 
 const route = useRoute();
-const athleteStore = useAthleteStore();
+const athleteStore = useAthleteStore(); // Assuming plans are already fetched or can be fetched individually
 
 const planId = computed(() => route.params.id);
 const plan = ref(null);
@@ -40,15 +40,20 @@ onMounted(async () => {
   isLoading.value = true;
   error.value = null;
   try {
-    let foundPlan = athleteStore.assignedNutritionPlans.find(p => p.id.toString() === planId.value);
+    // Attempt to find the plan in the existing list first
+    let foundPlan = athleteStore.assignedWorkoutPlans.find(p => p.id.toString() === planId.value);
 
     if (foundPlan) {
       plan.value = foundPlan;
     } else {
-      // Similar to WorkoutPlanDetail, fetch if not found.
-      // This might require an actual API call: e.g., nutritionService.getNutritionPlanById(planId.value)
-      await athleteStore.fetchAssignedNutritionPlans(); // Ensure list is populated
-      foundPlan = athleteStore.assignedNutritionPlans.find(p => p.id.toString() === planId.value);
+      // If not found, and if athleteStore doesn't have a method to fetch a single plan,
+      // this indicates a potential need for such a method or a different approach.
+      // For now, we'll simulate fetching it or assume it should be in the list.
+      // This might require an actual API call: e.g., planService.getWorkoutPlanById(planId.value)
+      // The issue description for athlete store only has fetchAssignedWorkoutPlans (plural)
+      // So, we will rely on the plan being in the list.
+      await athleteStore.fetchAssignedWorkoutPlans(); // Ensure list is populated
+      foundPlan = athleteStore.assignedWorkoutPlans.find(p => p.id.toString() === planId.value);
       if (foundPlan) {
         plan.value = foundPlan;
       } else {
@@ -56,7 +61,7 @@ onMounted(async () => {
       }
     }
   } catch (err) {
-    console.error('Error fetching nutrition plan detail:', err);
+    console.error('Error fetching workout plan detail:', err);
     error.value = err.message || 'Impossibile caricare i dettagli del piano.';
   } finally {
     isLoading.value = false;

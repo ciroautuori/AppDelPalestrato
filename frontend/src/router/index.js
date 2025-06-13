@@ -81,6 +81,18 @@ const router = createRouter({
       meta: { requiresAuth: true, roles: ['coach'], layout: 'AppLayout' }
     },
     {
+      path: '/coach/workout-plans',
+      name: 'CoachWorkoutPlanManagement',
+      component: () => import('@/views/coach/WorkoutPlanManagement.vue'),
+      meta: { requiresAuth: true, roles: ['coach'], layout: 'AppLayout' }
+    },
+    {
+      path: '/coach/nutrition-plan-management',
+      name: 'CoachNutritionPlanManagement',
+      component: () => import('@/views/coach/NutritionPlanManagement.vue'),
+      meta: { requiresAuth: true, roles: ['coach'], layout: 'AppLayout' }
+    },
+    {
       path: '/athlete/dashboard',
       name: 'athlete-dashboard',
       component: AthleteDashboardView,
@@ -93,9 +105,33 @@ const router = createRouter({
       component: () => import('@/views/athlete/HistoryView.vue'),
       meta: {
         requiresAuth: true,
-        role: 'athlete',
+        roles: ['athlete'], // ensure 'roles' is used for consistency with the guard
         layout: 'AppLayout'
       }
+    },
+    {
+      path: '/athlete/my-workout-plans',
+      name: 'MyWorkoutPlans',
+      component: () => import('@/views/athlete/MyWorkoutPlans.vue'),
+      meta: { requiresAuth: true, roles: ['athlete'], layout: 'AppLayout' }
+    },
+    {
+      path: '/athlete/my-nutrition-plans',
+      name: 'MyNutritionPlans',
+      component: () => import('@/views/athlete/MyNutritionPlans.vue'),
+      meta: { requiresAuth: true, roles: ['athlete'], layout: 'AppLayout' }
+    },
+    {
+      path: '/athlete/workout-plan/:id',
+      name: 'WorkoutPlanDetail',
+      component: () => import('@/views/athlete/WorkoutPlanDetail.vue'),
+      meta: { requiresAuth: true, roles: ['athlete'], layout: 'AppLayout' }
+    },
+    {
+      path: '/athlete/nutrition-plan/:id',
+      name: 'NutritionPlanDetail',
+      component: () => import('@/views/athlete/NutritionPlanDetail.vue'),
+      meta: { requiresAuth: true, roles: ['athlete'], layout: 'AppLayout' }
     },
     {
       path: '/access-denied',
@@ -107,19 +143,19 @@ const router = createRouter({
       path: '/coach/nutrition',
       name: 'CoachNutrition',
       component: () => import('@/views/coach/NutritionManagement.vue'),
-      meta: { requiresAuth: true, role: 'coach' }
+      meta: { requiresAuth: true, roles: ['coach'] } // ensure 'roles' is used
     },
     {
-      path: '/athlete/nutrition-plans',
+      path: '/athlete/nutrition-plans', // This existing route might conflict or be for a different purpose
       name: 'AthleteNutritionPlans',
       component: () => import('@/views/athlete/NutritionPlans.vue'),
-      meta: { requiresAuth: true, role: 'athlete' }
+      meta: { requiresAuth: true, roles: ['athlete'] } // ensure 'roles' is used
     },
     {
-      path: '/athlete/nutrition-plans/:id',
+      path: '/athlete/nutrition-plans/:id', // This existing route might conflict or be for a different purpose
       name: 'AthleteNutritionPlanDetail',
       component: () => import('@/views/athlete/NutritionPlanDetail.vue'),
-      meta: { requiresAuth: true, role: 'athlete' }
+      meta: { requiresAuth: true, roles: ['athlete'] } // ensure 'roles' is used
     },
     {
       path: '/:pathMatch(.*)*',
@@ -141,18 +177,16 @@ router.beforeEach(async (to, from, next) => {
   const userIsAuthenticated = authStore.isUserAuthenticated;
   const userRole = authStore.userRole;
 
-  const allowedRoles = to.meta.roles;
+  const allowedRoles = to.meta.roles; // This is an array
 
   if (requiresAuth && !userIsAuthenticated) {
-    // If route requires auth and user is not logged in, redirect to login
     next({ name: 'login', query: { redirect: to.fullPath } });
   } else if (requiresAuth && allowedRoles && !allowedRoles.includes(userRole)) {
-    // If route requires auth, has role restrictions, and user's role is not allowed
+    // If 'allowedRoles' is an array and 'userRole' is a string, this check is correct.
     next({ name: 'access-denied' });
   } else {
-    // Otherwise, proceed
     next();
   }
 });
 
-export default router; 
+export default router;

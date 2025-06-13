@@ -1,51 +1,75 @@
 import { defineStore } from 'pinia';
-import { nutritionService } from '@/services/nutritionService';
-import { userService } from '@/services/userService';
-import { useToast } from '@/composables/useToast';
+import * as planService from '@/services/planService';
+import * as nutritionService from '@/services/nutritionService';
 
 export const useCoachStore = defineStore('coach', {
   state: () => ({
-    athletes: [],
+    workoutPlans: [],
     nutritionPlans: [],
+    athletes: [],
     isLoading: false,
-    error: null
+    error: null,
   }),
-
   actions: {
-    async fetchCoachData() {
+    async fetchCoachWorkoutData() {
       this.isLoading = true;
       this.error = null;
       try {
-        // Fetch athletes
-        const athletesResponse = await userService.getCoachAthletes();
-        this.athletes = athletesResponse.data;
-
-        // Fetch nutrition plans
-        const plansResponse = await nutritionService.getNutritionPlans();
-        this.nutritionPlans = plansResponse.data;
-      } catch (error) {
-        this.error = error.response?.data?.detail || 'Error fetching coach data';
-        useToast().error(this.error);
+        const [workoutPlansData, athletesData] = await Promise.all([
+          planService.getWorkoutPlans(),
+          planService.getCoachAthletes(),
+        ]);
+        this.workoutPlans = workoutPlansData;
+        this.athletes = athletesData;
+      } catch (err) {
+        this.error = err.message || 'Failed to fetch coach workout data';
+        console.error(err);
       } finally {
         this.isLoading = false;
       }
     },
-
-    async assignPlan(assignmentData) {
+    async fetchCoachNutritionData() {
       this.isLoading = true;
       this.error = null;
       try {
-        await nutritionService.assignNutritionPlan(assignmentData);
-        useToast().success('Nutrition plan assigned successfully');
-        // Refresh the data to get the updated list
-        await this.fetchCoachData();
-      } catch (error) {
-        this.error = error.response?.data?.detail || 'Error assigning nutrition plan';
-        useToast().error(this.error);
-        throw error;
+        // Fetch athletes only if not already populated by fetchCoachWorkoutData
+        // or if a separate call is strictly necessary for nutrition context.
+        // For now, let's assume athletes might need to be fresh or specifically scoped.
+        const [nutritionPlansData, athletesData] = await Promise.all([
+          nutritionService.getNutritionPlans(),
+          this.athletes.length === 0 ? planService.getCoachAthletes() : Promise.resolve(this.athletes)
+        ]);
+        this.nutritionPlans = nutritionPlansData;
+        if (this.athletes.length === 0) { // only update if they were fetched
+            this.athletes = athletesData;
+        }
+      } catch (err) {
+        this.error = err.message || 'Failed to fetch coach nutrition data';
+        console.error(err);
       } finally {
         this.isLoading = false;
       }
-    }
-  }
-}); 
+    },
+    async assignWorkoutPlan(assignmentData) {
+      // isLoading and error handling can be added here if needed for specific feedback
+      try {
+        await planService.assignWorkoutPlan(assignmentData);
+        // Optionally, refresh data or provide success feedback
+      } catch (err) {
+        this.error = err.message || 'Failed to assign workout plan';
+        console.error(err);
+        throw err; // Re-throw to be caught by the component
+      }
+    },
+    async assignNutritionPlan(assignmentData) {
+      try {
+        await nutritionService.assignNutritionPlan(assignmentData);
+        // Optionally, refresh data or provide success feedback
+      } catch (err) {
+        this.error = err.message || 'Failed to assign nutrition plan';
+        console.error(err);
+        throw err; // Re-throw to be caught by the component
+      }
+    },
+  },
+});
