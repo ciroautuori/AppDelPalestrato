@@ -178,7 +178,6 @@ router.beforeEach(async (to, from, next) => {
   const userRole = authStore.userRole;
 
   const allowedRoles = to.meta.roles; // This is an array
-  const userRole = authStore.userRole; // This is a string
 
   if (requiresAuth && !userIsAuthenticated) {
     next({ name: 'login', query: { redirect: to.fullPath } });
