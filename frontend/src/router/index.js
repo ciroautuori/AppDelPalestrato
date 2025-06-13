@@ -104,6 +104,24 @@ const router = createRouter({
       meta: { layout: 'AuthLayout' }
     },
     {
+      path: '/coach/nutrition',
+      name: 'CoachNutrition',
+      component: () => import('@/views/coach/NutritionManagement.vue'),
+      meta: { requiresAuth: true, role: 'coach' }
+    },
+    {
+      path: '/athlete/nutrition-plans',
+      name: 'AthleteNutritionPlans',
+      component: () => import('@/views/athlete/NutritionPlans.vue'),
+      meta: { requiresAuth: true, role: 'athlete' }
+    },
+    {
+      path: '/athlete/nutrition-plans/:id',
+      name: 'AthleteNutritionPlanDetail',
+      component: () => import('@/views/athlete/NutritionPlanDetail.vue'),
+      meta: { requiresAuth: true, role: 'athlete' }
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('@/views/NotFoundView.vue'),
